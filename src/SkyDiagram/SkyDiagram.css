@@ -1,0 +1,38 @@
+/*
+SkyDiagram
+wgbh/asset1
+astro.unl.edu
+2019-05-12
+*/
+
+
+.wgbh-asset1-skydiagram-root {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+	overflow: hidden;
+
+	position: absolute;
+	padding: 0;
+	margin: 0;
+
+	background-color: black;
+	border: none; /*40px solid black;*/
+	box-sizing: border-box;
+}
+
+.wgbh-asset1-skydiagram-content {
+	position: absolute;
+	padding: 0;
+	margin: 0;
+	
+	background-color: black;
+	border: none;
+	width: 100%;
+	height: 100%;
+}
+
+
+
