@@ -2,14 +2,14 @@
 Asset1
 WGBH
 astro.unl.edu
-2019-05-13
+2019-05-19
 */
 
 	
 import SkyDiagram from './SkyDiagram/SkyDiagram.js';
 
 var versionNum = '0.1';
-var versionDateStr = '2019-05-13-1827';
+var versionDateStr = '2019-05-19-xxxx';
 
 
 class Asset1 {
@@ -18,8 +18,6 @@ class Asset1 {
 		console.log('WGBHAsset1\n version: ' + versionNum + '\n build date: ' + versionDateStr);
 
 		this._diagram = new SkyDiagram(rootElement);
-		
-		
 	}
 
 	getElement() {
@@ -38,20 +36,12 @@ class Asset1 {
 		this._diagram.update();
 	}
 
-
 }
-
 
 
 if (typeof window !== 'undefined') {
-
-	if (typeof window.WGBH !== 'object') {
-		window.WGBH = {};
-	}
-	
-	if (window.WGBH.Asset1 === undefined) {
-		window.WGBH.Asset1 = Asset1;
+	if (window.WGBHAsset1 === undefined) {
+		window.WGBHAsset1 = Asset1;
 	}
 }
-
 

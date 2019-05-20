@@ -2,7 +2,7 @@
 SkyDiagram
 wgbh/asset1
 astro.unl.edu
-2019-05-15
+2019-05-19
 */
 
 import './SkyDiagram.css';
@@ -20,16 +20,136 @@ export default class SkyDiagram {
 			this._root = document.createElement('div');
 		}
 		
+		this._rootStyle = window.getComputedStyle(this._root);
+
 		this._root.classList.add('wgbh-asset1-skydiagram-root');
 
 		this._content = document.createElement('div');
 		this._content.classList.add('wgbh-asset1-skydiagram-content');
 		this._root.appendChild(this._content);
 
-		this._rootStyle = window.getComputedStyle(this._root);
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const xlinkNS = 'http://www.w3.org/1999/xlink';
 
-		this._skyCanvas = document.createElement('canvas');
-		this._content.appendChild(this._skyCanvas);
+		// Background: sky and path.
+
+		this._background = document.createElementNS(svgNS, 'svg');
+		this._background.classList.add('wgbh-asset1-skydiagram-absolute');
+
+		let defs = document.createElementNS(svgNS, 'defs');
+		this._background.appendChild(defs);
+		
+		let skyGradient = document.createElementNS(svgNS, 'linearGradient');
+		skyGradient.setAttribute('id', 'skyGradient');
+		skyGradient.setAttribute('gradientTransform', 'rotate(-90, 1, 0)');
+		defs.appendChild(skyGradient);
+
+		this._skyBottomStop = document.createElementNS(svgNS, 'stop');
+		this._skyBottomStop.setAttribute('offset', '0');
+		skyGradient.appendChild(this._skyBottomStop);
+
+		this._skyTopStop = document.createElementNS(svgNS, 'stop');
+		this._skyTopStop.setAttribute('offset', '1');
+		skyGradient.appendChild(this._skyTopStop);
+
+		let sky = document.createElementNS(svgNS, 'rect');
+		sky.setAttribute('x', '0');
+		sky.setAttribute('y', '0');
+		sky.setAttribute('rx', '0');
+		sky.setAttribute('ry', '0');
+		sky.setAttribute('width', '100%');
+		sky.setAttribute('height', '100%');
+		sky.setAttribute('fill', 'url(#skyGradient)');
+		this._background.appendChild(sky);
+
+
+		this._pathMask = document.createElementNS(svgNS, 'mask');
+		this._pathMask.setAttribute('id', 'pathMask');
+		
+		this._pathMaskRect = document.createElementNS(svgNS, 'rect');
+		this._pathMaskRect.setAttribute('fill', 'white');
+		this._pathMaskRect.setAttribute('x', 0);
+		this._pathMaskRect.setAttribute('y', 0);
+		this._pathMaskRect.setAttribute('width', '100%');
+		this._pathMaskRect.setAttribute('height', '100%');
+
+		this._pathMaskMoonCircle = document.createElementNS(svgNS, 'ellipse');
+		this._pathMaskMoonCircle.setAttribute('fill', 'black');
+
+		this._pathMask.appendChild(this._pathMaskRect);
+		this._pathMask.appendChild(this._pathMaskMoonCircle);
+		this._background.appendChild(this._pathMask);	
+
+		this._drawnPath = document.createElementNS(svgNS, 'path');
+		this._drawnPath.setAttribute('mask', 'url(#pathMask)');
+		this._drawnPath.setAttribute('fill', 'none');
+		this._drawnPath.setAttribute('stroke', '#ffffff');
+		this._drawnPath.setAttribute('stroke-width', '2');
+		this._background.appendChild(this._drawnPath);
+
+		this._content.appendChild(this._background);
+
+		// Middle ground: Sun and Moon.
+
+		this._sunGroup = document.createElementNS(svgNS, 'g');
+		this._background.appendChild(this._sunGroup);
+
+		this._sun = document.createElementNS(svgNS, 'image');
+		this._sun.setAttributeNS(xlinkNS, 'href', 'sun.svg');
+		this._sun.setAttribute('width', '120');
+		this._sun.setAttribute('height', '120');
+		this._sun.setAttribute('transform', 'translate(-60, -60)');
+		this._sunGroup.appendChild(this._sun);	
+
+//		this._sun = document.createElement('img');
+//		this._sun.src = 'sun.svg';
+//		this._sun.classList.add('wgbh-asset1-skydiagram-absolute');
+//		this._sun.ondragstart = () => {return false;};
+//		this._content.appendChild(this._sun);
+
+
+		this._moonGroup = document.createElementNS(svgNS, 'g');
+		this._background.appendChild(this._moonGroup);
+
+		this._moonMask = document.createElementNS(svgNS, 'mask');
+		this._moonMask.setAttribute('id', 'moonMask');
+
+		this._moonMaskPath = document.createElementNS(svgNS, 'path');
+		this._moonMaskPath.setAttribute('fill', 'white');
+
+		this._moonMask.appendChild(this._moonMaskPath);
+
+		this._moonGroup.appendChild(this._moonMask);
+
+		this._moon = document.createElementNS(svgNS, 'image');
+		this._moon.setAttributeNS(xlinkNS, 'href', 'moon.svg');
+		this._moon.setAttribute('width', '80');
+		this._moon.setAttribute('height', '80');
+		this._moon.setAttribute('mask', 'url(#moonMask)');
+		this._moon.setAttribute('transform', 'translate(-40, -40)');
+		this._moonGroup.appendChild(this._moon);
+
+		this._moonMask.appendChild(this._moonMaskPath);
+
+//		this._moon = document.createElement('img');
+//		this._moon.src = 'moon.svg';
+//		this._moon.classList.add('wgbh-asset1-skydiagram-absolute');
+//		this._moon.ondragstart = () => {return false;};
+//		this._content.appendChild(this._moon);
+
+		// Foreground: ground, objects.
+
+		this._foreground = document.createElementNS(svgNS, 'svg');
+		this._foreground.classList.add('wgbh-asset1-skydiagram-absolute');
+
+		this._ground = document.createElementNS(svgNS, 'image');
+		this._ground.setAttributeNS(xlinkNS, 'href', 'ground.svg');
+		this._ground.setAttribute('preserveAspectRatio', 'none');
+
+		this._foreground.appendChild(this._ground);
+
+		this._content.appendChild(this._foreground);
+
 
 		this._defaultParams = {
 			width: 800,
@@ -38,12 +158,14 @@ export default class SkyDiagram {
 			peak: 0.8,
 			margin: 0.1,
 
-			//path: [{x: 0.5, y: 1.0}],
+			sunAndMoonSize: 0.05,
+
+			path: [{x: 0.5, y: 1.0}],
 			//path: [{x: 0, y: 0.75}, {x: 0.125, y: 0.875}, {x: 0.25, y: 1.0}],
-			path: [{x: 0, y: 1}],
+			//path: [{x: 0, y: 1}],
 
 			sunPathPosition: 0.2,
-			moonPathPosition: 0.4,
+			moonPathPosition: 0,
 		};
 
 		this.setParams(this._defaultParams);
@@ -72,16 +194,27 @@ export default class SkyDiagram {
 			path: this._path,
 			sunPathPosition: this._sunPathPosition,
 			moonPathPosition: this._moonPathPosition,
+			sunAndMoonSize: this._sunAndMoonSize,
 		};
 	}
 
+
+	validateNumber(arg, paramName) {
+		if (typeof arg !== 'number') {
+			arg = Number(arg);
+		}
+		if (!Number.isFinite(arg)) {
+			throw new Error(paramName + ' must be a valid number.');
+		}
+		return arg;
+	}
 
 	getWidth() {
 		return this._width;
 	}
 
 	setWidth(arg) {
-		this._width = arg;
+		this._width = this.validateNumber(arg, 'width');
 		this._needsUpdateDimensions = true;
 	}
 
@@ -91,7 +224,7 @@ export default class SkyDiagram {
 	}
 
 	setHeight(arg) {
-		this._height = arg;
+		this._height = this.validateNumber(arg, 'height');
 		this._needsUpdateDimensions = true;
 	}
 
@@ -101,7 +234,7 @@ export default class SkyDiagram {
 	}
 
 	setHorizon(arg) {
-		this._horizon = arg;
+		this._horizon = this.validateNumber(arg, 'horizon');
 		this._needsUpdateLayout = true;
 	}
 
@@ -111,7 +244,7 @@ export default class SkyDiagram {
 	}
 
 	setPeak(arg) {
-		this._peak = arg;
+		this._peak = this.validateNumber(arg, 'peak');
 		this._needsUpdateLayout = true;
 	}
 
@@ -121,7 +254,7 @@ export default class SkyDiagram {
 	}
 
 	setMargin(arg) {
-		this._margin = arg;
+		this._margin = this.validateNumber(arg, 'margin');
 		this._needsUpdateLayout = true;
 	}
 
@@ -157,6 +290,16 @@ export default class SkyDiagram {
 	}
 
 
+	getMoonPathPosition() {
+		return this._moonPathPosition;
+	}
+
+	setMoonPathPosition(arg) {
+		this._moonPathPosition = this.validateObjectPathPosition(arg);
+		this._needsUpdatePathPositions;
+	}	
+
+
 	getSunPathPosition() {
 		return this._sunPathPosition;
 	}
@@ -174,6 +317,15 @@ export default class SkyDiagram {
 			throw new Error('A path position must be a finite number.');
 		}
 		return (arg%1 + 1)%1;
+	}
+
+
+	getSunAndMoonSize() {
+		return this._sunAndMoonSize;
+	}
+
+	setSunAndMoonSize(arg) {
+		this._sunAndMoonSize = this.validateNumber(arg, 'sunAndMoonSize');
 	}
 
 
@@ -209,8 +361,13 @@ export default class SkyDiagram {
 		}
 
 		if (params.moonPathPosition !== undefined) {
-		//	this.setMoonPathPosition(params.moonPathPosition);
+			this.setMoonPathPosition(params.moonPathPosition);
 		}
+
+		if (params.sunAndMoonSize !== undefined) {
+			this.setSunAndMoonSize(params.sunAndMoonSize);
+		}
+
 
 	}
 
@@ -258,9 +415,10 @@ export default class SkyDiagram {
 		this._contentWidth = this._root.clientWidth;
 		this._contentHeight = this._root.clientHeight;
 
-		this._skyCanvas.width = this._contentWidth;
-		this._skyCanvas.height = this._contentHeight;
 
+		this._background.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
+		this._foreground.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
+		
 		this._needsUpdateDimensions = false;
 	}
 
@@ -270,6 +428,20 @@ export default class SkyDiagram {
 
 		this._groundOrigin = this._contentHeight*(1 - this._horizon);
 		this._groundHeight = this._contentHeight - this._groundOrigin;
+
+		if (this._groundHeight === 0) {
+			this._ground.setAttribute('display', 'none');
+		} else {
+			this._ground.setAttribute('display', 'block');
+			this._ground.setAttribute('x', '0');
+			this._ground.setAttribute('y', this._contentHeight - 2*this._groundHeight);
+			this._ground.setAttribute('width', this._contentWidth);
+			this._ground.setAttribute('height', 2*this._groundHeight);
+
+		}
+
+
+
 
 		this._needsUpdateLayout = false;
 	}
@@ -334,7 +506,6 @@ export default class SkyDiagram {
 			this._curves.push(curve);
 		}
 
-
 		let contentWidth = this._contentWidth;
 
 		function getMirroredPoint(pt) {
@@ -366,20 +537,19 @@ export default class SkyDiagram {
 		//  intersection. The left and right 'nadir' points will not be the same.
 
 		// ldx, ldy: left horizon point derivative
-		// lbha: left below horizon angle, the angle going down (not the path tangent)
-		let s = this._curves[0];
-		let ldx = 2*(s.c.x - s.a0.x);
-		let ldy = 2*(s.c.y - s.a0.y);
+		// lbha: left below horizon angle, the angle going down (opposite the path tangent)
+		let a0 = this._curves[0].a0;
+		let c = this._curves[0].c;
+		let ldx = 2*(c.x - a0.x);
+		let ldy = 2*(c.y - a0.y);
 
 		this._leftBelowHorizonTangentAngle = Math.atan2(ldy, ldx);
 
 		let lbha = this._leftBelowHorizonTangentAngle + Math.PI;
 
-
 		this._rightBelowHorizonTangentAngle = Math.PI - lbha;
 
-
-		this._leftHorizonPt = {x: s.a0.x, y: s.a0.y};
+		this._leftHorizonPt = {x: a0.x, y: a0.y};
 		this._leftNadirPt = {};
 		let quadPathLength = this._totalPathLength / 4;
 		this._leftNadirPt.x = this._leftHorizonPt.x + quadPathLength * Math.cos(lbha);
@@ -392,35 +562,89 @@ export default class SkyDiagram {
 
 		let endTime = performance.now();
 
-		console.log('prepPath: ' + (endTime - startTime).toFixed(1) + ' ms');
+		//console.log('prepPath: ' + (endTime - startTime).toFixed(1) + ' ms');
 	}
 
 
 	_updatePathPositions() {
 
+		let diagonal = Math.sqrt(this._contentWidth*this._contentWidth + this._contentHeight*this._contentHeight);
+		let diameter = this._sunAndMoonSize * diagonal;
+		let radius = 0.5 * this._sunAndMoonSize * diagonal;
+		let scale = (this._sunAndMoonSize * diagonal) / 80;
+
 		let sunPt = this.getScreenPointForPathPosition(this._sunPathPosition);
-
-		let ctx = this._skyCanvas.getContext('2d');
-
-		ctx.beginPath();
-		ctx.fillStyle = 'rgb(255, 255, 200)';
-		ctx.ellipse(sunPt.x, sunPt.y, 10, 10, 0, 0, 2*Math.PI);
-		ctx.fill();
-
-		let ca = Math.cos(sunPt.angle);
-		let sa = Math.sin(sunPt.angle);
-		let r = 20;
-
-		ctx.strokeStyle = 'rgb(255, 140, 140)';
-		ctx.lineWidth = 5;
-
-		ctx.beginPath();
-		ctx.moveTo(sunPt.x, sunPt.y);
-		ctx.lineTo(sunPt.x + r*ca, sunPt.y + r*sa);
-		ctx.stroke();
+		let sunTransform = '';
+		sunTransform += 'rotate(' + (sunPt.angle * 180 / Math.PI) + ', ' + sunPt.x + ', ' + sunPt.y + ')';
+		sunTransform += ' translate(' + sunPt.x + ', ' + sunPt.y + ')';
+		sunTransform += ' scale(' + scale + ')';
+		this._sunGroup.setAttribute('transform', sunTransform);
 		
+//		this._moonGroup.setAttribute('transform', moonTransform);
+//		this._sun.style.top = sunPt.y + 'px';
+//		this._sun.style.left = sunPt.x + 'px';
+//		this._sun.style.transform = 'translate(-50%, -50%) rotate(' + sunPt.angle + 'rad) scale(' + scale + ')';
+
+		let moonPt = this.getScreenPointForPathPosition(this._moonPathPosition);
+		let moonTransform = '';
+		moonTransform += 'rotate(' + (moonPt.angle * 180 / Math.PI) + ', ' + moonPt.x + ', ' + moonPt.y + ')';
+		moonTransform += ' translate(' + moonPt.x + ', ' + moonPt.y + ')';
+		moonTransform += ' scale(' + scale + ')';
+		this._moonGroup.setAttribute('transform', moonTransform);
+		
+
+
+		this._pathMaskMoonCircle.setAttribute('cx', moonPt.x);
+		this._pathMaskMoonCircle.setAttribute('cy', moonPt.y);
+		this._pathMaskMoonCircle.setAttribute('rx', radius);
+		this._pathMaskMoonCircle.setAttribute('ry', radius);
+
+		this._updatePhaseMask();
+
 		this._needsUpdatePathPositions = false;
 	}
+
+
+	_updatePhaseMask() {
+
+		let delta = ((this._moonPathPosition - this._sunPathPosition)%1 + 1)%1;
+		let alpha = 2*Math.PI * delta;
+		let rx = Math.abs(40*Math.cos(alpha));
+
+		let d = 'M 40 0 ';
+
+		console.log(delta);
+
+		if (delta === 0) {
+			// New moon.
+			// TODO		
+
+		} else if (delta < 0.25) {
+			// Waning crescent.
+			d = 'M 40 0 A ' + rx + ' 40 0 1 0 40 80 A 40 40 0 1 1 40 0 Z'; 	
+		} else if (delta === 0.25) {
+			// Third quarter.
+			d = 'M 40 0 L 40 80 A 40 40 0 1 1 40 0 Z';
+		} else if (delta < 0.5) {
+			// Waning gibbous.
+			d = 'M 40 0 A ' + rx + ' 40 0 1 1 40 80 A 40 40 0 1 1 40 0 Z';
+		} else if (delta === 0.5) {
+			// Full moon.
+			d = 'M 40 0 A 40 40 0 1 1 40 80 A 40 40 0 1 1 40 0 Z';
+		} else if (delta < 0.75) {
+			// Waxing gibbous.
+			d = 'M 40 0 A 40 40 0 1 1 40 80 A ' + rx + ' 40 0 1 1 40 0 Z';
+		} else if (delta === 0.75) {
+			// First quarter.
+			d = 'M 40 0 A 40 40 0 1 1 40 80 L 40 0 Z';
+		} else {
+			// Waxing crescent.
+			d = 'M 40 0 A 40 40 0 1 1 40 80 A ' + rx + ' 40 0 1 0 40 0 Z';
+		}
+
+		this._moonMaskPath.setAttribute('d', d);
+	}
+
 
 	getScreenPointForPathPosition(position) {
 
@@ -534,7 +758,7 @@ export default class SkyDiagram {
 
 		let endTime = performance.now();
 
-		console.log('getScreenPointForPathPosition: ' + (endTime - startTime).toFixed(1) + ' ms');
+		//console.log('getScreenPointForPathPosition: ' + (endTime - startTime).toFixed(1) + ' ms');
 
 		return pt;
 	}
@@ -669,40 +893,24 @@ export default class SkyDiagram {
 
 		this._needsUpdatePathPositions = true;
 
-		let ctx = this._skyCanvas.getContext('2d');
+		// TODO: dusk, dawn
 
-		ctx.fillStyle = 'rgb(200, 200, 200)';
-		ctx.fillRect(0, 0, this._contentWidth, this._contentHeight);
-
-		ctx.fillStyle = 'rgb(90, 90, 90)';
-		ctx.fillRect(0, this._groundOrigin, this._contentWidth, this._groundHeight);
-
-		ctx.strokeStyle = 'rgb(235, 235, 235)';
-		ctx.lineWidth = 2;
-
-		let s = this._curves[0];
-		ctx.beginPath();
-		ctx.moveTo(s.a0.x, s.a0.y);
-		for (let i = 0; i < this._curves.length; ++i) {
-			let s = this._curves[i];
-			ctx.quadraticCurveTo(s.c.x, s.c.y, s.a1.x, s.a1.y);
-
-//			// lookup table testing
-//			let lookup = s.lookup;
-//			for (let j = 0; j < lookup.length; j++) {
-//				ctx.lineTo(lookup[j].pt.x, lookup[j].pt.y);
-//			}
+		if (this._sunPathPosition <= 0.5) {
+			this._skyBottomStop.setAttribute('stop-color', '#efffff');
+			this._skyTopStop.setAttribute('stop-color', '#9B96FF');
+		} else {
+			this._skyBottomStop.setAttribute('stop-color', '#323052');
+			this._skyTopStop.setAttribute('stop-color', '#030305');
 		}
-		ctx.stroke();
 
-//		ctx.beginPath();
-//		ctx.strokeStyle = 'rgb(200, 255, 200)';
-//		ctx.moveTo(this._leftHorizonPt.x, this._leftHorizonPt.y);
-//		ctx.lineTo(this._leftNadirPt.x, this._leftNadirPt.y);
-//		ctx.moveTo(this._rightHorizonPt.x, this._rightHorizonPt.y);
-//		ctx.lineTo(this._rightNadirPt.x, this._rightNadirPt.y);
-//		ctx.stroke();
-		
+		let d = 'M ' + this._leftNadirPt.x + ',' + this._leftNadirPt.y;
+		d += ' L ' + this._leftHorizonPt.x + ',' + this._leftHorizonPt.y;
+		for (let i = 0; i < this._curves.length; ++i) {
+			let c = this._curves[i];
+			d += ' Q ' + c.c.x + ',' + c.c.y + ' ' + c.a1.x + ',' + c.a1.y;
+		}
+		d += ' L ' + this._rightNadirPt.x + ',' + this._rightNadirPt.y;
+		this._drawnPath.setAttribute('d', d);
 	}
 
 
