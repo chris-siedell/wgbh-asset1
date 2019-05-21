@@ -2,7 +2,7 @@
 SkyDiagram
 wgbh/asset1
 astro.unl.edu
-2019-05-19
+2019-05-20
 */
 
 import './SkyDiagram.css';
@@ -72,12 +72,16 @@ export default class SkyDiagram {
 		this._pathMaskRect.setAttribute('y', 0);
 		this._pathMaskRect.setAttribute('width', '100%');
 		this._pathMaskRect.setAttribute('height', '100%');
-
-		this._pathMaskMoonCircle = document.createElementNS(svgNS, 'ellipse');
-		this._pathMaskMoonCircle.setAttribute('fill', 'black');
-
 		this._pathMask.appendChild(this._pathMaskRect);
-		this._pathMask.appendChild(this._pathMaskMoonCircle);
+
+		this._pathMaskMoonCutout = document.createElementNS(svgNS, 'ellipse');
+		this._pathMaskMoonCutout.setAttribute('fill', 'black');
+		this._pathMask.appendChild(this._pathMaskMoonCutout);
+
+		this._pathMaskSunCutout = document.createElementNS(svgNS, 'ellipse');
+		this._pathMaskSunCutout.setAttribute('fill', 'black');
+		this._pathMask.appendChild(this._pathMaskSunCutout);
+
 		this._background.appendChild(this._pathMask);	
 
 		this._drawnPath = document.createElementNS(svgNS, 'path');
@@ -137,18 +141,27 @@ export default class SkyDiagram {
 //		this._moon.ondragstart = () => {return false;};
 //		this._content.appendChild(this._moon);
 
-		// Foreground: ground, objects.
+		let foregroundFilter = document.createElementNS(svgNS, 'filter');
+		foregroundFilter.setAttribute('id', 'foregroundFilter');
+		this._background.appendChild(foregroundFilter);
 
-		this._foreground = document.createElementNS(svgNS, 'svg');
-		this._foreground.classList.add('wgbh-asset1-skydiagram-absolute');
+		this._foregroundFilterMatrix = document.createElementNS(svgNS, 'feColorMatrix');
+		this._foregroundFilterMatrix.setAttribute('in', 'SourceGraphic');
+		this._foregroundFilterMatrix.setAttribute('type', 'matrix');
+		this._foregroundFilterMatrix.setAttribute('values', '0.5 0 0 0 0  0 0.5 0 0 0  0 0 0.5 0 0  0 0 0 1 0');
+		foregroundFilter.appendChild(this._foregroundFilterMatrix);
+
+
+		this._foregroundGroup = document.createElementNS(svgNS, 'g');
+		this._background.appendChild(this._foregroundGroup);
 
 		this._ground = document.createElementNS(svgNS, 'image');
 		this._ground.setAttributeNS(xlinkNS, 'href', 'ground.svg');
 		this._ground.setAttribute('preserveAspectRatio', 'none');
+		this._ground.setAttribute('width', '100%');
 
-		this._foreground.appendChild(this._ground);
+		this._foregroundGroup.appendChild(this._ground);
 
-		this._content.appendChild(this._foreground);
 
 
 		this._defaultParams = {
@@ -296,7 +309,7 @@ export default class SkyDiagram {
 
 	setMoonPathPosition(arg) {
 		this._moonPathPosition = this.validateObjectPathPosition(arg);
-		this._needsUpdatePathPositions;
+		this._needsRecalcSunAndMoonPts = true;
 	}	
 
 
@@ -306,7 +319,7 @@ export default class SkyDiagram {
 
 	setSunPathPosition(arg) {
 		this._sunPathPosition = this.validateObjectPathPosition(arg);
-		this._needsUpdatePathPositions;
+		this._needsRecalcSunAndMoonPts = true;
 	}
 
 	validateObjectPathPosition(arg) {
@@ -326,6 +339,7 @@ export default class SkyDiagram {
 
 	setSunAndMoonSize(arg) {
 		this._sunAndMoonSize = this.validateNumber(arg, 'sunAndMoonSize');
+		this._needsRecalcSunAndMoonPts = true;
 	}
 
 
@@ -368,7 +382,6 @@ export default class SkyDiagram {
 			this.setSunAndMoonSize(params.sunAndMoonSize);
 		}
 
-
 	}
 
 
@@ -390,11 +403,16 @@ export default class SkyDiagram {
 			this._prepPath();
 		}
 
-		this._redraw();
-
-		if (this._needsUpdatePathPositions) {
-			this._updatePathPositions();
+		if (this._needsRecalcSunAndMoonPts) {
+			this._recalcSunAndMoonPts();
 		}
+
+
+		this._moveSunAndMoon();
+		this._redrawSky();
+		this._redrawPath();
+		this._redrawPhase();
+		this._redrawPathCutouts();
 
 		let event = new CustomEvent('update', {
 			detail: {
@@ -409,39 +427,40 @@ export default class SkyDiagram {
 	_updateDimensions() {
 		this._needsUpdateLayout = true;
 
+		console.log('updateDimensions...');
+
 		this._root.style.width = this._width + 'px';
 		this._root.style.height = this._height + 'px';
 
 		this._contentWidth = this._root.clientWidth;
 		this._contentHeight = this._root.clientHeight;
 
-
 		this._background.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
-		this._foreground.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
+
+		console.log(' contentWidth: ' + this._contentWidth);
+		console.log(' contentHeight: ' + this._contentHeight);
 		
 		this._needsUpdateDimensions = false;
 	}
 
 
 	_updateLayout() {
+
 		this._needsPrepPath = true;
 
-		this._groundOrigin = this._contentHeight*(1 - this._horizon);
-		this._groundHeight = this._contentHeight - this._groundOrigin;
+		this._horizonY = this._contentHeight*(1 - this._horizon);
+		let groundHeight = 2*(this._contentHeight - this._horizonY);
 
 		if (this._groundHeight === 0) {
 			this._ground.setAttribute('display', 'none');
 		} else {
-			this._ground.setAttribute('display', 'block');
+			this._ground.setAttribute('display', 'inline');
+			this._ground.setAttribute('height', groundHeight);
 			this._ground.setAttribute('x', '0');
-			this._ground.setAttribute('y', this._contentHeight - 2*this._groundHeight);
-			this._ground.setAttribute('width', this._contentWidth);
-			this._ground.setAttribute('height', 2*this._groundHeight);
-
+			this._ground.setAttribute('y', this._contentHeight - groundHeight);
 		}
 
-
-
+		this._skyBottomStop.setAttribute('offset', this._horizon);
 
 		this._needsUpdateLayout = false;
 	}
@@ -449,7 +468,7 @@ export default class SkyDiagram {
 
 	_prepPath() {
 
-		this._needsUpdatePathPositions = true;
+		this._needsRecalcSunAndMoonPts = true;
 
 		let startTime = performance.now();
 
@@ -464,7 +483,7 @@ export default class SkyDiagram {
 		//		intersection and <1,1> at zenith.
 		//  Screen space: left-hand system with origin at upper-left corner of component.
 		const pXOffset = this._contentWidth * this._margin;
-		const pYOffset = this._groundOrigin;
+		const pYOffset = this._horizonY;
 		const pYScale = -this._peak * pYOffset;
 		const pXScale = 0.5 * this._contentWidth*(1 - 2*this._margin);
 
@@ -565,60 +584,83 @@ export default class SkyDiagram {
 		//console.log('prepPath: ' + (endTime - startTime).toFixed(1) + ' ms');
 	}
 
+	_recalcSunAndMoonPts() {
+		// The _sunPt and _moonPt objects will have these properties:
+		// 	x, y: the screen coordinates (LHS with the origin in the upper left of diagram),
+		//  angle: the angle, in radians, of the tangent at that position,
+		//  radius: the radius of the disc, in pixels,
+		//	scale: the scale needed to be applied to the graphic to achieve the desired radius,
+		//  transform: the transform string to assign to the given object's group.
 
-	_updatePathPositions() {
+		this._sunPt = this.getScreenPointForPathPosition(this._sunPathPosition);
+		this._moonPt = this.getScreenPointForPathPosition(this._moonPathPosition);
 
 		let diagonal = Math.sqrt(this._contentWidth*this._contentWidth + this._contentHeight*this._contentHeight);
 		let diameter = this._sunAndMoonSize * diagonal;
+	
 		let radius = 0.5 * this._sunAndMoonSize * diagonal;
+		this._sunPt.radius = radius;
+		this._moonPt.radius = radius;
+		
 		let scale = (this._sunAndMoonSize * diagonal) / 80;
+		this._sunPt.scale = scale;
+		this._moonPt.scale = scale;
 
-		let sunPt = this.getScreenPointForPathPosition(this._sunPathPosition);
 		let sunTransform = '';
-		sunTransform += 'rotate(' + (sunPt.angle * 180 / Math.PI) + ', ' + sunPt.x + ', ' + sunPt.y + ')';
-		sunTransform += ' translate(' + sunPt.x + ', ' + sunPt.y + ')';
-		sunTransform += ' scale(' + scale + ')';
-		this._sunGroup.setAttribute('transform', sunTransform);
-		
-//		this._moonGroup.setAttribute('transform', moonTransform);
-//		this._sun.style.top = sunPt.y + 'px';
-//		this._sun.style.left = sunPt.x + 'px';
-//		this._sun.style.transform = 'translate(-50%, -50%) rotate(' + sunPt.angle + 'rad) scale(' + scale + ')';
+		sunTransform += 'rotate(' + (this._sunPt.angle * 180 / Math.PI) + ', ' + this._sunPt.x + ', ' + this._sunPt.y + ')';
+		sunTransform += ' translate(' + this._sunPt.x + ', ' + this._sunPt.y + ')';
+		sunTransform += ' scale(' + this._sunPt.scale + ')';
+		this._sunPt.transform = sunTransform;
 
-		let moonPt = this.getScreenPointForPathPosition(this._moonPathPosition);
 		let moonTransform = '';
-		moonTransform += 'rotate(' + (moonPt.angle * 180 / Math.PI) + ', ' + moonPt.x + ', ' + moonPt.y + ')';
-		moonTransform += ' translate(' + moonPt.x + ', ' + moonPt.y + ')';
-		moonTransform += ' scale(' + scale + ')';
-		this._moonGroup.setAttribute('transform', moonTransform);
+		moonTransform += 'rotate(' + (this._moonPt.angle * 180 / Math.PI) + ', ' + this._moonPt.x + ', ' + this._moonPt.y + ')';
+		moonTransform += ' translate(' + this._moonPt.x + ', ' + this._moonPt.y + ')';
+		moonTransform += ' scale(' + this._moonPt.scale + ')';
+		this._moonPt.transform = moonTransform;
 		
+		this._needsRecalcSunAndMoonPts = false;
+	}
 
+	_moveSunAndMoon() {
+		this._sunGroup.setAttribute('transform', this._sunPt.transform);
+		this._moonGroup.setAttribute('transform', this._moonPt.transform);
+	}
 
-		this._pathMaskMoonCircle.setAttribute('cx', moonPt.x);
-		this._pathMaskMoonCircle.setAttribute('cy', moonPt.y);
-		this._pathMaskMoonCircle.setAttribute('rx', radius);
-		this._pathMaskMoonCircle.setAttribute('ry', radius);
+	_redrawPathCutouts() {
 
-		this._updatePhaseMask();
+		let multiplier = 1.2;
 
-		this._needsUpdatePathPositions = false;
+		let moonCutoutRadius = multiplier * this._moonPt.radius;
+		let sunCutoutRadius = multiplier * this._sunPt.radius;
+
+		this._pathMaskMoonCutout.setAttribute('cx', this._moonPt.x);
+		this._pathMaskMoonCutout.setAttribute('cy', this._moonPt.y);
+		this._pathMaskMoonCutout.setAttribute('rx', moonCutoutRadius);
+		this._pathMaskMoonCutout.setAttribute('ry', moonCutoutRadius);
+
+		this._pathMaskSunCutout.setAttribute('cx', this._sunPt.x);
+		this._pathMaskSunCutout.setAttribute('cy', this._sunPt.y);
+		this._pathMaskSunCutout.setAttribute('rx', sunCutoutRadius);
+		this._pathMaskSunCutout.setAttribute('ry', sunCutoutRadius);
 	}
 
 
-	_updatePhaseMask() {
+	_redrawPhase() {
 
 		let delta = ((this._moonPathPosition - this._sunPathPosition)%1 + 1)%1;
 		let alpha = 2*Math.PI * delta;
 		let rx = Math.abs(40*Math.cos(alpha));
 
-		let d = 'M 40 0 ';
+		if (delta === 0) {
+			this._moonGroup.setAttribute('display', 'none');
+		} else {
+			this._moonGroup.setAttribute('display', 'inline');
+		}
 
-		console.log(delta);
+		let d = '';
 
 		if (delta === 0) {
 			// New moon.
-			// TODO		
-
 		} else if (delta < 0.25) {
 			// Waning crescent.
 			d = 'M 40 0 A ' + rx + ' 40 0 1 0 40 80 A 40 40 0 1 1 40 0 Z'; 	
@@ -889,19 +931,27 @@ export default class SkyDiagram {
 	}
 
 
-	_redraw() {
-
-		this._needsUpdatePathPositions = true;
+	_redrawSky() {
 
 		// TODO: dusk, dawn
+		// TODO: move foreground shadowing
 
 		if (this._sunPathPosition <= 0.5) {
 			this._skyBottomStop.setAttribute('stop-color', '#efffff');
 			this._skyTopStop.setAttribute('stop-color', '#9B96FF');
+			this._foregroundGroup.setAttribute('filter', 'none');
 		} else {
 			this._skyBottomStop.setAttribute('stop-color', '#323052');
 			this._skyTopStop.setAttribute('stop-color', '#030305');
+			this._foregroundGroup.setAttribute('filter', 'url(#foregroundFilter)');
 		}
+
+
+	}
+
+	_redrawPath() {
+
+		// Does not include the path cutouts around Sun and Moon.
 
 		let d = 'M ' + this._leftNadirPt.x + ',' + this._leftNadirPt.y;
 		d += ' L ' + this._leftHorizonPt.x + ',' + this._leftHorizonPt.y;
@@ -911,7 +961,10 @@ export default class SkyDiagram {
 		}
 		d += ' L ' + this._rightNadirPt.x + ',' + this._rightNadirPt.y;
 		this._drawnPath.setAttribute('d', d);
+
 	}
+
+
 
 
 	/*
