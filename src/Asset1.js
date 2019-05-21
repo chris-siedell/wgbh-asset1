@@ -8,14 +8,13 @@ astro.unl.edu
 	
 import SkyDiagram from './SkyDiagram/SkyDiagram.js';
 
-var versionNum = '0.1';
-var versionDateStr = '2019-05-19-xxxx';
+var versionNum = '0.0';
+var versionDateStr = '2019-05-20-xxxx';
 
 
 class Asset1 {
 
 	constructor(rootElement) {
-		console.log('WGBHAsset1\n version: ' + versionNum + '\n build date: ' + versionDateStr);
 
 		this._diagram = new SkyDiagram(rootElement);
 	}
@@ -42,6 +41,7 @@ class Asset1 {
 if (typeof window !== 'undefined') {
 	if (window.WGBHAsset1 === undefined) {
 		window.WGBHAsset1 = Asset1;
+		console.log('Component loaded: WGBHAsset1 (version: ' + versionNum + ', build: ' + versionDateStr + ')');
 	}
 }
 

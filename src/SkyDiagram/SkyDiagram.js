@@ -278,7 +278,7 @@ export default class SkyDiagram {
 
 	setPath(arg) {
 		this._path = this.validatePath(arg);
-		this._needsUpdatePath = true;
+		this._needsPrepPath = true;
 	}
 
 	validatePath(arg) {

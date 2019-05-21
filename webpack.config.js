@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-	mode: 'development',
+	mode: 'production',
   entry: './src/Asset1.js',
   output: {
     filename: 'Asset1.js',
