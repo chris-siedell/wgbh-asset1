@@ -1,0 +1,34 @@
+specifications.txt
+WGBH Asset1
+2019-05-21
+
+
+The sky diagram component has three required graphics: moon.svg, sun.svg, and ground.svg.
+
+
+=== moon.svg ===
+
+Requirements:
+- exported SVG must be 80x80px (i.e. viewBox="0 0 80 80"),
+- moon disc must be 80px in diameter and centered.
+
+The moon graphic will be masked to indicate phase. The actual displayed size depends on the sunAndMoonSize parameter and the diagram's size.
+
+
+=== sun.svg ===
+
+Requirements:
+- exported SVG must be 120x120px (i.e. viewBox="0 0 120 120"),
+- sun disc must be 80px in diameter and centered.
+
+The extra space allows drawing rays or other effects. The actual displayed size depends on the sunAndMoonSize parameter and the diagram's size. I found that I needed a transparent background to enforce the size and centering requirements.
+
+
+=== ground.svg ===
+
+The ground layer graphic is scaled such that:
+- it takes 100% of the diagram width,
+- the bottom half goes from the bottom of the diagram to the horizon level, with the upper half above the horizon level, allowing a wavy horizon.
+
+The ground graphic's aspect ratio will usually not be preserved.
+
