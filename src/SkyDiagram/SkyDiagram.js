@@ -2,7 +2,7 @@
 SkyDiagram
 wgbh/asset1
 astro.unl.edu
-2019-05-20
+2019-05-21
 */
 
 import './SkyDiagram.css';
@@ -937,8 +937,8 @@ export default class SkyDiagram {
 		// TODO: move foreground shadowing
 
 		if (this._sunPathPosition <= 0.5) {
-			this._skyBottomStop.setAttribute('stop-color', '#efffff');
-			this._skyTopStop.setAttribute('stop-color', '#9B96FF');
+			this._skyBottomStop.setAttribute('stop-color', '#29abe2');
+			this._skyTopStop.setAttribute('stop-color', '#155ac7');
 			this._foregroundGroup.setAttribute('filter', 'none');
 		} else {
 			this._skyBottomStop.setAttribute('stop-color', '#323052');
