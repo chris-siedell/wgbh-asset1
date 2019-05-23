@@ -178,7 +178,17 @@ export default class SkyDiagram {
 			//path: [{x: 0, y: 1}],
 
 			sunPathPosition: 0.2,
-			moonPathPosition: 0,
+			moonPathPosition: 0.4,
+
+			dayBottomColor: '#29abe2',
+			dayTopColor: '#155ac7',
+			nightBottomColor: '#323052',
+			nightTopColor: '#030305',
+
+			pathColor: '#ffffff',
+			pathWidth: 2,
+
+			nightForegroundShading: 0.5,
 		};
 
 		this.setParams(this._defaultParams);
@@ -208,9 +218,68 @@ export default class SkyDiagram {
 			sunPathPosition: this._sunPathPosition,
 			moonPathPosition: this._moonPathPosition,
 			sunAndMoonSize: this._sunAndMoonSize,
+			dayBottomColor: this._dayBottomColor,
+			dayTopColor: this._dayTopColor,
+			nightBottomColor: this._nightBottomColor,
+			nightTopColor: this._nightTopColor,
+			pathColor: this._pathColor,
+			pathWidth: this._pathWidth,
+			nightForegroundShading: this._nightForegroundShading,
+
 		};
 	}
 
+	setDayBottomColor(arg) {
+		this._dayBottomColor = arg;
+	}
+
+	setDayTopColor(arg) {
+		this._dayTopColor = arg;
+	}
+
+	setNightBottomColor(arg) {
+		this._nightBottomColor = arg;
+	}
+
+	setNightTopColor(arg) {
+		this._nightTopColor = arg;
+	}
+
+	setPathColor(arg) {
+		this._pathColor = arg;
+		this._drawnPath.setAttribute('stroke', this._pathColor);
+	}
+
+	setPathWidth(arg) {
+		this._pathWidth = this.validatePathWidth(arg);
+		this._drawnPath.setAttribute('stroke-width', this._pathWidth);		
+	}
+
+	validatePathWidth(arg) {
+		arg = this.validateNumber(arg, 'pathWidth');
+		if (arg < 0.1) {
+			arg = 0.1;
+		} else if (arg > 5) {
+			arg = 5;
+		}
+		return arg;
+	}
+
+	setNightForegroundShading(arg) {
+		this._nightForegroundShading = this.validateNightForegroundShading(arg);
+		let n = String(this._nightForegroundShading);
+		this._foregroundFilterMatrix.setAttribute('values', n + ' 0 0 0 0  0 ' + n + ' 0 0 0  0 0 ' + n + ' 0 0  0 0 0 1 0');
+	}
+
+	validateNightForegroundShading(arg) {
+		arg = this.validateNumber(arg, 'nightForegroundShading');
+		if (arg < 0) {
+			arg = 0;
+		} else if (arg > 1) {
+			arg = 1;
+		}
+		return arg;
+	}
 
 	validateNumber(arg, paramName) {
 		if (typeof arg !== 'number') {
@@ -262,6 +331,22 @@ export default class SkyDiagram {
 	}
 
 
+	setSunURL(arg) {
+		const xlinkNS = 'http://www.w3.org/1999/xlink';
+		this._sun.setAttributeNS(xlinkNS, 'href', arg);
+	}		
+
+	setMoonURL(arg) {
+		const xlinkNS = 'http://www.w3.org/1999/xlink';
+		this._moon.setAttributeNS(xlinkNS, 'href', arg);
+	}	
+
+	setGroundURL(arg) {
+		const xlinkNS = 'http://www.w3.org/1999/xlink';
+		this._ground.setAttributeNS(xlinkNS, 'href', arg);
+	}	
+
+	
 	getMargin() {
 		return this._margin;
 	}
@@ -382,6 +467,45 @@ export default class SkyDiagram {
 			this.setSunAndMoonSize(params.sunAndMoonSize);
 		}
 
+		if (params.sunURL !== undefined) {
+			this.setSunURL(params.sunURL);
+		}
+
+		if (params.moonURL !== undefined) {
+			this.setMoonURL(params.moonURL);
+		}
+
+		if (params.groundURL !== undefined) {
+			this.setGroundURL(params.groundURL);
+		}
+
+		if (params.dayBottomColor !== undefined) {
+			this.setDayBottomColor(params.dayBottomColor);
+		}
+
+		if (params.dayTopColor !== undefined) {
+			this.setDayTopColor(params.dayTopColor);
+		}
+
+		if (params.nightBottomColor !== undefined) {
+			this.setNightBottomColor(params.nightBottomColor);
+		}
+
+		if (params.nightTopColor !== undefined) {
+			this.setNightTopColor(params.nightTopColor);
+		}
+
+		if (params.pathColor !== undefined) {
+			this.setPathColor(params.pathColor);
+		}
+
+		if (params.pathWidth !== undefined) {
+			this.setPathWidth(params.pathWidth);
+		}
+
+		if (params.nightForegroundShading !== undefined) {
+			this.setNightForegroundShading(params.nightForegroundShading);
+		}
 	}
 
 
@@ -937,15 +1061,14 @@ export default class SkyDiagram {
 		// TODO: move foreground shadowing
 
 		if (this._sunPathPosition <= 0.5) {
-			this._skyBottomStop.setAttribute('stop-color', '#29abe2');
-			this._skyTopStop.setAttribute('stop-color', '#155ac7');
+			this._skyBottomStop.setAttribute('stop-color', this._dayBottomColor);
+			this._skyTopStop.setAttribute('stop-color', this._dayTopColor);
 			this._foregroundGroup.setAttribute('filter', 'none');
 		} else {
-			this._skyBottomStop.setAttribute('stop-color', '#323052');
-			this._skyTopStop.setAttribute('stop-color', '#030305');
+			this._skyBottomStop.setAttribute('stop-color', this._nightBottomColor);
+			this._skyTopStop.setAttribute('stop-color', this._nightTopColor);
 			this._foregroundGroup.setAttribute('filter', 'url(#foregroundFilter)');
 		}
-
 
 	}
 
