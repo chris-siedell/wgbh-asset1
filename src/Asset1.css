@@ -1,0 +1,18 @@
+
+.wgbh-asset1-root {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+	overflow: hidden;
+
+	position: absolute;
+	padding: 0;
+	margin: 0;
+
+	background-color: gray;
+	border: none; /*40px solid black;*/
+	box-sizing: border-box;
+}
+
