@@ -20,7 +20,7 @@ astro.unl.edu
 
 	overflow: hidden;
 
-	position: absolute;
+	position: relative;
 	padding: 0;
 	margin: 0;
 
@@ -30,7 +30,7 @@ astro.unl.edu
 }
 
 .wgbh-asset1-skydiagram-content {
-	position: absolute;
+	position: relative;
 	padding: 0;
 	margin: 0;
 	
@@ -41,7 +41,7 @@ astro.unl.edu
 }
 
 .wgbh-asset1-skydiagram-absolute {
-	position: absolute;
+	position: relative;
 	padding: 0;
 	margin: 0;
 	top: 0;

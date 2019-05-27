@@ -20,6 +20,9 @@ class Asset1 {
 	constructor() {
 
 
+		this._onAnimFrame = this._onAnimFrame.bind(this);
+
+
 		// The official timekeeping property of the simulation is _time. This variable is assigned
 		//	only in _setTime() -- see the comments there for more information about _time and the
 		//	properties derived from it.
@@ -33,7 +36,7 @@ class Asset1 {
 		//	and the calendar and synodic periods. It must also be small enough to allow smooth control
 		//	over the animation rate. However, it can not be so small that 2*_TIME_CYCLE is larger
 		//	than Number.MAX_SAFE_INTEGER (check console output for an error message).
-		this._ATU_PER_HOUR = 10;
+		this._ATU_PER_HOUR = 3600;
 		this._ATU_PER_DAY = 24 * this._ATU_PER_HOUR;
 
 		// The displayed calendar day will be an integer in the interval [1, _CALENDAR_PERIOD_IN_DAYS].
@@ -71,8 +74,6 @@ class Asset1 {
 		this._root.appendChild(this._diagram.getElement());
 
 		this._controlsDiv = document.createElement('div');
-		this._controlsDiv.style.position = 'relative';
-		this._controlsDiv.style.top = this._diagram.getHeight() + 'px';
 		this._root.appendChild(this._controlsDiv);
 		
 		this._decrementDayButton = new Button({title: 'go back one day', text: 'decrement day'});
@@ -98,7 +99,12 @@ class Asset1 {
 
 
 		this._isAnimating = false;
-		this._setTime(12 * this._ATU_PER_HOUR);
+
+		this._animFrameID = undefined;
+
+		this.setSecondsPerCalendarPeriod(90);
+
+		this._setTime((9*24 + 15) * this._ATU_PER_HOUR);
 
 	}
 
@@ -113,11 +119,12 @@ class Asset1 {
 		// _time must be kept in the interval [0, _TIME_CYCLE) to avoid integer overflow.
 		// By definition, _time = 0 corresponds to midnight on the first calendar day.
 
-		console.log("time before: "+this._time);
+		if (typeof arg !== 'number' || !Number.isFinite(arg)) {
+			console.error('Invalid argument passed to internal _setTime method.');
+			return;
+		}
 
 		this._time = ( Math.round(arg) % this._TIME_CYCLE + this._TIME_CYCLE)%this._TIME_CYCLE;
-
-		console.log(" time after: "+this._time);
 
 		// _moonPhase is a rational number in [0, 1), where
 		//	0.0  = new moon,
@@ -141,11 +148,11 @@ class Asset1 {
 		//	0.76 = 6pm.
 		this._timeOfDay = r / this._ATU_PER_DAY;
 			
-		console.log("");
-		console.log("            time: "+this._time);
-		console.log("       moonPhase: "+this._moonPhase);
-		console.log("     calendarDay: "+this._calendarDay);
-		console.log("       timeOfDay: "+this._timeOfDay);
+//		console.log("");
+//		console.log("            time: "+this._time);
+//		console.log("       moonPhase: "+this._moonPhase);
+//		console.log("     calendarDay: "+this._calendarDay);
+//		console.log("       timeOfDay: "+this._timeOfDay);
 	}
 
 
@@ -185,6 +192,11 @@ class Asset1 {
 		this._setIsAnimating(!this._isAnimating);
 	}
 
+
+	_getIsAnimating() {
+		return this._isAnimating;
+	}
+
 	_setIsAnimating(arg) {
 
 		arg = Boolean(arg);
@@ -196,6 +208,11 @@ class Asset1 {
 		this._isAnimating = arg;
 
 		if (this._isAnimating) {
+
+			this._animInitTime = this._time;
+			this._animInitClock = performance.now();
+			this._animATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
+
 			this._playPauseButton.setParams({title: 'pause', text: 'pause'});
 			this._decrementHourButton.setEnabled(false);
 			this._decrementDayButton.setEnabled(false);	
@@ -209,9 +226,51 @@ class Asset1 {
 			this._incrementDayButton.setEnabled(true);	
 		}
 
+		if (this._isAnimating && this._animFrameID === undefined) {
+			this._animFrameID = window.requestAnimationFrame(this._onAnimFrame);
+		}
 	}
 
-	
+	_onAnimFrame(clock) {
+
+		if (this._isAnimating) {
+			// TODO: revise
+
+				let clockDelta = clock - this._animInitClock;
+				let timeDelta = clockDelta * this._animATUPerMS;
+				this._setTime(this._animInitTime + timeDelta);
+				this._update();
+
+//			if (this._animPrevClock !== undefined) {
+//
+//				let clockDelta = clock - this._animPrevClock;
+//		
+//				//console.log(clockDelta.toPrecision(3)+ ", " + (1000/clockDelta).toPrecision(3));
+//				
+//				let timeDelta = clockDelta * this._animATUPerMS;
+//				//console.log("timeDelta: "+timeDelta);
+//
+//				this._setTime(this._time + timeDelta);
+//				this._update();
+//			}			
+//
+//			this._animPrevClock = clock;
+		}
+
+		if (this._isAnimating) {
+			this._animFrameID = window.requestAnimationFrame(this._onAnimFrame);
+		} else {
+			this._animFrameID = undefined;
+		}
+	}
+
+	getSecondsPerCalendarPeriod() {
+		return this._secondsPerCalendarPeriod;
+	}
+
+	setSecondsPerCalendarPeriod(arg) {
+		this._secondsPerCalendarPeriod = arg;
+	}
 
 
 
