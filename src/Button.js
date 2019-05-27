@@ -42,7 +42,7 @@ export default class Button {
 	}
 
 	setEnabled(arg) {
-		this._button.setAttribute('disabled', !arg);
+		this._button.disabled = !arg;
 	}
 
 }
