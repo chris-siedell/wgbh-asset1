@@ -11,8 +11,65 @@
 	padding: 0;
 	margin: 0;
 
-	background-color: gray;
+	background-color: black;
 	border: none; /*40px solid black;*/
 	box-sizing: border-box;
 }
+
+.wgbh-asset1-controlpanel {
+	position: relative;
+	background-color: black;
+	border: 5px;
+	border-color: lightgray;
+}
+
+
+.wgbh-asset1-controlpanel img {
+	display: inline-block;
+	height: 25px;
+	padding: 5px 10px 5px 5px;
+	vertical-align: middle;
+}
+
+.wgbh-asset1-controlpanel div {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.wgbh-asset1-controlpanel button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.wgbh-asset1-controlpanel button {
+	font-family: "Muli", sans-serif;
+
+	border: none;
+
+	color: black;
+
+	cursor: pointer;
+
+	display: block;
+
+	margin: 10px;
+
+	font-size: 20px;
+
+	font-weight: 600;
+
+  padding: 5px 10px;
+
+  border-radius: 7px;
+
+  background-color:#ffe61e;
+	box-shadow: 0 4px 0 0 #ffba09;
+}
+
+
+.wgbh-asset1-controlpanel button:not([disabled]):active {
+	transform: translateY(4px);
+	box-shadow: unset;
+}
+
 

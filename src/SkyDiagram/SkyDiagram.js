@@ -166,7 +166,7 @@ export default class SkyDiagram {
 
 		this._defaultParams = {
 			width: 800,
-			height: 300,
+			height: 400,
 			horizon: 0.2,
 			peak: 0.8,
 			margin: 0.1,

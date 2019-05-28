@@ -2,27 +2,36 @@
 Asset1
 WGBH
 astro.unl.edu
-2019-05-24
+2019-05-27
 */
+
+import './Asset1.css';
 
 	
 import SkyDiagram from './SkyDiagram/SkyDiagram.js';
 
-import Button from './Button.js';
+
+import ControlPanel from './ControlPanel.js';
+
 
 
 var versionNum = '0.0';
-var versionDateStr = '2019-05-26-xxxx';
+var versionDateStr = '2019-05-27-xxxx';
 
 
 class Asset1 {
 
+
 	constructor() {
 
+		this.decrementDay = this.decrementDay.bind(this);
+		this.decrementHour = this.decrementHour.bind(this);
+		this.incrementDay = this.incrementDay.bind(this);
+		this.incrementHour = this.incrementHour.bind(this);
+		this.play = this.play.bind(this);
+		this.pause = this.pause.bind(this);
 
-		this._onAnimFrame = this._onAnimFrame.bind(this);
-
-
+		
 		// The official timekeeping property of the simulation is _time. This variable is assigned
 		//	only in _setTime() -- see the comments there for more information about _time and the
 		//	properties derived from it.
@@ -61,6 +70,7 @@ class Asset1 {
 			console.error('TIME_CYCLE is greater than MAX_SAFE_INTEGER.');
 		}
 
+		console.log("ATU_PER_HOUR: "+this._ATU_PER_HOUR);
 		console.log("CALENDAR_PERIOD: "+this._CALENDAR_PERIOD);
 		console.log("SYNODIC_PERIOD: "+this._SYNODIC_PERIOD);
 		console.log("TIME_CYCLE: "+this._TIME_CYCLE);
@@ -73,38 +83,27 @@ class Asset1 {
 		this._diagram = new SkyDiagram();
 		this._root.appendChild(this._diagram.getElement());
 
-		this._controlsDiv = document.createElement('div');
-		this._root.appendChild(this._controlsDiv);
-		
-		this._decrementDayButton = new Button({title: 'go back one day', text: 'decrement day'});
-		this._decrementDayButton.setHandler(this._decrementDay.bind(this));
-		this._controlsDiv.appendChild(this._decrementDayButton.getElement());
+		this._controlPanel = new ControlPanel(this);
+		this._root.appendChild(this._controlPanel.getElement());
 
-		this._decrementHourButton = new Button({title: 'go back one hour', text: 'decrement hour'});
-		this._decrementHourButton.setHandler(this._decrementHour.bind(this));
-		this._controlsDiv.appendChild(this._decrementHourButton.getElement());
-		
-		this._playPauseButton = new Button({title: 'play', text: 'play'});
-		this._playPauseButton.setHandler(this._toggleAnimation.bind(this));
-		this._controlsDiv.appendChild(this._playPauseButton.getElement());
+		// _isPlaying signifies that the simulation is running continuously.
+		this._isPlaying = false;
 
-		this._incrementHourButton = new Button({title: 'go forward one hour', text: 'increment hour'});
-		this._incrementHourButton.setHandler(this._incrementHour.bind(this));
-		this._controlsDiv.appendChild(this._incrementHourButton.getElement());
-
-		this._incrementDayButton = new Button({title: 'go forward one day', text: 'increment day'});
-		this._incrementDayButton.setHandler(this._incrementDay.bind(this));
-		this._controlsDiv.appendChild(this._incrementDayButton.getElement());
-
-
-
-		this._isAnimating = false;
-
+		// If _animFrameID is defined it means there's a queued request for an animation frame
+		//	callback -- that is, there's an animation in progress. Animations are used for
+		//	time transitions (incrementing/decrementing) in addition to continuous playing.
 		this._animFrameID = undefined;
 
-		this.setSecondsPerCalendarPeriod(90);
+		this._minTransitionDurationMS = 300;
+		this._maxTransitionDurationMS = 1000;
 
+
+		this.setSecondsPerCalendarPeriod(90);
 		this._setTime((9*24 + 15) * this._ATU_PER_HOUR);
+
+
+		this._animFrameHandler = this._animFrameHandler.bind(this);
+
 
 	}
 
@@ -157,81 +156,187 @@ class Asset1 {
 
 
 	_setTimeByDelta(delta) {
-		// This helper function used by the increment and decrement
-		//	button handlers.
+		// This helper function is for use by the increment and decrement methods.
 		
-		if (this._isAnimating) {
-			console.warn('Attempt to change time while animating.');
+		if (this._animFrameID !== undefined) {
+			console.warn('Can not change time while animating.');
 			return;
 		}
+		
+		this._controlPanel.setMode(this._controlPanel.MODE_ALL_DISABLED);
 
-		this._setTime(this._time + delta);
-		this._update();
+		// Calculate the transition params and start the animation.
+
+		this._animTransitionInitTime = this._time;
+		this._animTransitionInitClock = undefined;
+		this._animTransitionTimeDelta = delta;
+		this._animTransitionFinalTime = this._time + delta;
+
+
+		if (Math.abs(delta) < 12 * this._ATU_PER_HOUR) {
+			//console.log("short transition");
+			this._animTransitionDurationMS = this._minTransitionDurationMS;
+		} else {
+			//console.log("long transition");
+			this._animTransitionDurationMS = this._maxTransitionDurationMS;
+		}
+
+		//console.log("init clock: "+this._animTransitionInitClock);
+
+		this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
 	}
 
-	_decrementDay() {
+
+	decrementDay() {
 		this._setTimeByDelta(-this._ATU_PER_DAY);
 	}
 
-	_decrementHour() {
+	decrementHour() {
 		this._setTimeByDelta(-this._ATU_PER_HOUR);	
 	}
 
-	_incrementHour() {
+	incrementHour() {
 		this._setTimeByDelta(this._ATU_PER_HOUR);	
 	}
 
-	_incrementDay() {
+	incrementDay() {
 		this._setTimeByDelta(this._ATU_PER_DAY);	
 	}
 
+	play() {
+		this.setIsPlaying(true);		
+	}
 
-	_toggleAnimation() {
-		console.log('toggle animation');
-
-		this._setIsAnimating(!this._isAnimating);
+	pause() {
+		this.setIsPlaying(false);
 	}
 
 
-	_getIsAnimating() {
-		return this._isAnimating;
+	getIsPlaying() {
+		return this._isPlaying;
 	}
 
-	_setIsAnimating(arg) {
+	setIsPlaying(arg) {
 
 		arg = Boolean(arg);
 
-		if (arg === this._isAnimating) {
-			return;
-		}
-
-		this._isAnimating = arg;
-
-		if (this._isAnimating) {
-
-			this._animInitTime = this._time;
-			this._animInitClock = performance.now();
-			this._animATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
-
-			this._playPauseButton.setParams({title: 'pause', text: 'pause'});
-			this._decrementHourButton.setEnabled(false);
-			this._decrementDayButton.setEnabled(false);	
-			this._incrementHourButton.setEnabled(false);
-			this._incrementDayButton.setEnabled(false);	
+		if (arg) {
+			// To start playing:
+			//	- the sim must not be playing already, and
+			//	- there must be no other animation (e.g. a transition).
+			if (this._isPlaying) {
+				console.warn('Can not start playing when already playing.');
+				return;
+			}
+			if (this._animFrameID !== undefined) {
+				console.warn('Can not start playing while animating.');
+				return;
+			}
 		} else {
-			this._playPauseButton.setParams({title: 'play', text: 'play'});
-			this._decrementHourButton.setEnabled(true);
-			this._decrementDayButton.setEnabled(true);	
-			this._incrementHourButton.setEnabled(true);
-			this._incrementDayButton.setEnabled(true);	
+			// To pause playing:
+			//	- the sim must be playing.
+			if (!this._isPlaying) {
+				console.warn('Can not pause unless playing.');
+				return;
+			}	
 		}
 
-		if (this._isAnimating && this._animFrameID === undefined) {
-			this._animFrameID = window.requestAnimationFrame(this._onAnimFrame);
+		//console.log('Will set is playing: '+arg);
+
+		this._isPlaying = arg;
+		
+		if (this._isPlaying) {
+			// Start playing.
+
+			this._controlPanel.setMode(this._controlPanel.MODE_PAUSE_ENABLED);
+
+			this._recalcAnimPlayingParams();
+
+			this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
+
+		} else {
+			// Pause playing.
+			
+			this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
+
+			window.cancelAnimationFrame(this._animFrameID);
+			this._animFrameID = undefined;
 		}
 	}
 
-	_onAnimFrame(clock) {
+	_recalcAnimPlayingParams() {
+		// Call this whenever playing is about to start or when the animation
+		//	rate (secondsPerCalendarPeriod) has changed.
+
+		if (!this._isPlaying) {
+			return;
+		}
+
+		this._animPlayingInitTime = this._time;
+		this._animPlayingInitClock = undefined;
+		this._animPlayingATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
+		this._animPlayingMSPerTimeCycle = this._TIME_CYCLE / this._animPlayingATUPerMS;
+	}
+
+
+	_animFrameHandler(clock) {
+
+		//console.log("anim clock: "+clock);
+
+		if (this._isPlaying) {
+			// Continuous playing.
+
+			if (this._animPlayingInitClock === undefined) {
+				this._animPlayingInitClock = clock;
+			}
+
+			let clockDelta = (clock - this._animPlayingInitClock)%this._animPlayingMSPerTimeCycle;
+			let timeDelta = clockDelta * this._animPlayingATUPerMS;
+			this._setTime(this._animPlayingInitTime + timeDelta);
+			this._update();
+		
+			this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
+
+		} else {
+			// Temporary transition.
+
+			if (this._animTransitionInitClock === undefined) {
+				this._animTransitionInitClock = clock;
+			}
+
+//			this._animTransitionInitTime = this._time;
+//			this._animTransitionInitClock = performance.now();
+//			this._animTransitionTimeDelta = delta;
+//			this._animTransitionFinalTime = this._time + delta;
+//			this._animTransitionDurationMS = this._transitionDurationMS;
+
+			let u = (clock - this._animTransitionInitClock) / this._animTransitionDurationMS;
+
+			if (u < 1) {
+				// Transition is on-going.
+
+				let timeDelta = u * this._animTransitionTimeDelta;
+				this._setTime(this._animTransitionInitTime + timeDelta);
+				this._update();
+				
+				this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
+			} else {
+				// Transition is finished.
+				
+				this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
+
+				this._animFrameID = undefined;
+
+				this._setTime(this._animTransitionFinalTime);
+				this._update();
+
+			}
+
+		}
+	}
+
+/*
+	_onAnimPlayFrame(clock) {
 
 		if (this._isAnimating) {
 			// TODO: revise
@@ -263,6 +368,7 @@ class Asset1 {
 			this._animFrameID = undefined;
 		}
 	}
+*/
 
 	getSecondsPerCalendarPeriod() {
 		return this._secondsPerCalendarPeriod;
@@ -270,6 +376,7 @@ class Asset1 {
 
 	setSecondsPerCalendarPeriod(arg) {
 		this._secondsPerCalendarPeriod = arg;
+		this._recalcAnimPlayingParams();
 	}
 
 
@@ -315,7 +422,7 @@ class Asset1 {
 if (typeof window !== 'undefined') {
 	if (window.WGBHAsset1 === undefined) {
 		window.WGBHAsset1 = Asset1;
-		console.log('Component loaded: WGBHAsset1 (version: ' + versionNum + ', build: ' + versionDateStr + ')');
+		console.info('Component loaded: WGBHAsset1 (version: ' + versionNum + ', build: ' + versionDateStr + ')');
 	}
 }
 
