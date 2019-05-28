@@ -5,18 +5,18 @@ astro.unl.edu
 2019-05-27
 */
 
+
 import './Asset1.css';
 
-	
 import SkyDiagram from './SkyDiagram/SkyDiagram.js';
-
 
 import ControlPanel from './ControlPanel.js';
 
 
 
 var versionNum = '0.0';
-var versionDateStr = '2019-05-27-xxxx';
+var versionDateStr = '2019-05-28-xxxx';
+
 
 
 class Asset1 {
@@ -264,6 +264,7 @@ class Asset1 {
 		}
 	}
 
+
 	_recalcAnimPlayingParams() {
 		// Call this whenever playing is about to start or when the animation
 		//	rate (secondsPerCalendarPeriod) has changed.
@@ -280,8 +281,6 @@ class Asset1 {
 
 
 	_animFrameHandler(clock) {
-
-		//console.log("anim clock: "+clock);
 
 		if (this._isPlaying) {
 			// Continuous playing.
@@ -304,22 +303,21 @@ class Asset1 {
 				this._animTransitionInitClock = clock;
 			}
 
-//			this._animTransitionInitTime = this._time;
-//			this._animTransitionInitClock = performance.now();
-//			this._animTransitionTimeDelta = delta;
-//			this._animTransitionFinalTime = this._time + delta;
-//			this._animTransitionDurationMS = this._transitionDurationMS;
+			// t goes linearly in clock time from 0 (start) to 1 (finish).
+			let t = (clock - this._animTransitionInitClock) / this._animTransitionDurationMS;
 
-			let u = (clock - this._animTransitionInitClock) / this._animTransitionDurationMS;
-
-			if (u < 1) {
+			if (t < 1) {
 				// Transition is on-going.
+
+				// Using cubic easing.
+				let u = t*t*(3*(1 - t) + t);
 
 				let timeDelta = u * this._animTransitionTimeDelta;
 				this._setTime(this._animTransitionInitTime + timeDelta);
 				this._update();
 				
 				this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
+
 			} else {
 				// Transition is finished.
 				
@@ -329,7 +327,6 @@ class Asset1 {
 
 				this._setTime(this._animTransitionFinalTime);
 				this._update();
-
 			}
 
 		}
