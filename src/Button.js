@@ -6,8 +6,6 @@ export default class Button {
 	constructor(initParams) {
 
 		this._button = document.createElement('button');
-	//	this._button.classList.add('wgbh-yellow-btn');
-
 
 		this.setParams(initParams);
 	}
@@ -40,27 +38,24 @@ export default class Button {
 				text.textContent = params.text;
 				this._button.appendChild(text);
 
-//				icon.src = 'icons/
-//				this._button.innerHTML = '<img src="icons/' + params.icon + '.svg"><div>' + params.text + '</div>';
-//				
-//				this._button.textContent = params.text;
-//
-//				let icon = document.createElement('img');
-//				icon.src = 'icons/' + params.icon + '.svg';
-//
-//				this._button.appendChild(icon);
-//
 			} else {
 				this._button.textContent = params.text;
 			}
 		}
 
-		
+	}
+
+
+	addCSSClass(className) {
+		this._button.classList.add(className);
 	}
 
 
 	setHandler(func) {
-		this._button.onclick = func;
+		this._button.addEventListener('click', (e) => {
+			e.preventDefault();
+			func();
+		});
 	}
 
 

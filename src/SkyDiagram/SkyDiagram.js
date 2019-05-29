@@ -99,7 +99,7 @@ export default class SkyDiagram {
 		this._background.appendChild(this._sunGroup);
 
 		this._sun = document.createElementNS(svgNS, 'image');
-		this._sun.setAttributeNS(xlinkNS, 'href', 'sun.svg');
+		this._sun.setAttributeNS(xlinkNS, 'href', 'graphics/sun.svg');
 		this._sun.setAttribute('width', '120');
 		this._sun.setAttribute('height', '120');
 		this._sun.setAttribute('transform', 'translate(-60, -60)');
@@ -126,7 +126,7 @@ export default class SkyDiagram {
 		this._moonGroup.appendChild(this._moonMask);
 
 		this._moon = document.createElementNS(svgNS, 'image');
-		this._moon.setAttributeNS(xlinkNS, 'href', 'moon.svg');
+		this._moon.setAttributeNS(xlinkNS, 'href', 'graphics/moon.svg');
 		this._moon.setAttribute('width', '80');
 		this._moon.setAttribute('height', '80');
 		this._moon.setAttribute('mask', 'url(#moonMask)');
@@ -156,7 +156,7 @@ export default class SkyDiagram {
 		this._background.appendChild(this._foregroundGroup);
 
 		this._ground = document.createElementNS(svgNS, 'image');
-		this._ground.setAttributeNS(xlinkNS, 'href', 'ground.svg');
+		this._ground.setAttributeNS(xlinkNS, 'href', 'graphics/ground.svg');
 		this._ground.setAttribute('preserveAspectRatio', 'none');
 		this._ground.setAttribute('width', '100%');
 
@@ -551,7 +551,7 @@ export default class SkyDiagram {
 	_updateDimensions() {
 		this._needsUpdateLayout = true;
 
-		console.log('updateDimensions...');
+		//console.log('updateDimensions...');
 
 		this._root.style.width = this._width + 'px';
 		this._root.style.height = this._height + 'px';
@@ -561,8 +561,8 @@ export default class SkyDiagram {
 
 		this._background.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
 
-		console.log(' contentWidth: ' + this._contentWidth);
-		console.log(' contentHeight: ' + this._contentHeight);
+		//console.log(' contentWidth: ' + this._contentWidth);
+		//console.log(' contentHeight: ' + this._contentHeight);
 		
 		this._needsUpdateDimensions = false;
 	}

@@ -23,31 +23,47 @@ export default class ControlPanel {
 		this._element = document.createElement('div');
 		this._element.classList.add('wgbh-asset1-controlpanel');
 
-		this._decrementDayButton = new Button({title: 'go back one day', text: 'Go Back One Day', icon: 'double-back'});
-		this._decrementDayButton.setHandler(this._parent.decrementDay);
-		this._element.appendChild(this._decrementDayButton.getElement());
+		let leftSection = document.createElement('div');
+		leftSection.classList.add('wgbh-asset1-controlpanel-side');
+		this._element.appendChild(leftSection);
+
+		let middleSection = document.createElement('div');
+		middleSection.classList.add('wgbh-asset1-controlpanel-middle');
+		this._element.appendChild(middleSection);
+
+		let rightSection = document.createElement('div');
+		rightSection.classList.add('wgbh-asset1-controlpanel-side');
+		this._element.appendChild(rightSection);
 
 		this._decrementHourButton = new Button({title: 'go back one hour', text: 'Go Back One Hour', icon: 'back'});
 		this._decrementHourButton.setHandler(this._parent.decrementHour);
-		this._element.appendChild(this._decrementHourButton.getElement());
-
+		this._decrementHourButton.addCSSClass('increment-decrement');
+		leftSection.appendChild(this._decrementHourButton.getElement());
 		
+		this._decrementDayButton = new Button({title: 'go back one day', text: 'Go Back One Day', icon: 'double-back'});
+		this._decrementDayButton.setHandler(this._parent.decrementDay);
+		this._decrementDayButton.addCSSClass('increment-decrement');
+		leftSection.appendChild(this._decrementDayButton.getElement());
+
 		this._playButton = new Button({title: 'play', text: 'Play', icon: 'play'});
 		this._playButton.setHandler(this._parent.play);
-		this._element.appendChild(this._playButton.getElement());
+		this._playButton.addCSSClass('play-pause');
+		middleSection.appendChild(this._playButton.getElement());
 
 		this._pauseButton = new Button({title: 'pause', text: 'Pause', icon: 'pause'});
 		this._pauseButton.setHandler(this._parent.pause);
-		this._element.appendChild(this._pauseButton.getElement());
-
+		this._pauseButton.addCSSClass('play-pause');
+		middleSection.appendChild(this._pauseButton.getElement());
 
 		this._incrementHourButton = new Button({title: 'go forward one hour', text: 'Go Forward One Hour', icon: 'forward'});
 		this._incrementHourButton.setHandler(this._parent.incrementHour);
-		this._element.appendChild(this._incrementHourButton.getElement());
+		this._incrementHourButton.addCSSClass('increment-decrement');
+		rightSection.appendChild(this._incrementHourButton.getElement());
 
 		this._incrementDayButton = new Button({title: 'go forward one day', text: 'Go Forward One Day', icon: 'double-forward'});
 		this._incrementDayButton.setHandler(this._parent.incrementDay);
-		this._element.appendChild(this._incrementDayButton.getElement());
+		this._incrementDayButton.addCSSClass('increment-decrement');
+		rightSection.appendChild(this._incrementDayButton.getElement());
 
 		this.setMode(this.MODE_ALL_ENABLED);
 	}
@@ -57,6 +73,10 @@ export default class ControlPanel {
 		return this._element;
 	}
 
+
+	getHeight() {
+		return this._element.clientHeight;
+	}
 
 	setMode(arg) {
 

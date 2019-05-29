@@ -6,43 +6,101 @@
 	user-select: none;
 
 	overflow: hidden;
+	position: relative;
 
 	position: relative;
 	padding: 0;
 	margin: 0;
 
+	width: 1000px;	
+
 	background-color: black;
-	border: none; /*40px solid black;*/
+	border: none;
 	box-sizing: border-box;
 }
 
+.wgbh-asset1-infopanel {
+	width: 100%;
+
+	text-align: center;
+	
+	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
+	padding: 0.7vw 0 0 0;
+}
+
+
+.wgbh-asset1-infopanel div {
+	display: inline-block;
+
+	width: 30%;
+
+	font-family: "Muli", sans-serif;
+	font-weight: 800;
+	
+	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
+	font-size: 3vw;
+
+	color: white;
+}
+
+
 .wgbh-asset1-controlpanel {
-	position: relative;
-	background-color: black;
-	border: 5px;
-	border-color: lightgray;
+	width: 100%;
+
+	margin: 0;
+
+	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
+	padding: 0.7vw 0 1.5vw 0;
+	
+	display: flex;
+	flex-direction: row;
 }
 
 
-.wgbh-asset1-controlpanel img {
-	display: inline-block;
-	height: 25px;
-	padding: 5px 10px 5px 5px;
-	vertical-align: middle;
-}
-
-.wgbh-asset1-controlpanel div {
+.wgbh-asset1-controlpanel button img {
 	display: inline-block;
 	vertical-align: middle;
+	
+	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
+	height: 2vw;
+	margin: 0.6vw 1vw 0.6vw 1vw;
 }
+
+	
+.wgbh-asset1-controlpanel button div {
+	display: inline-block;
+	vertical-align: middle;
+
+	font-family: "Muli", sans-serif;
+	font-weight: 600;
+
+	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
+	font-size: 1.8vw;
+}
+
 
 .wgbh-asset1-controlpanel button:disabled {
 	opacity: 0.6;
 	cursor: default;
 }
 
+
+.wgbh-asset1-controlpanel button:focus {
+	outline: 6px double white;
+	outline-offset: 3px;
+	border: none;
+}
+
+.wgbh-asset1-controlpanel button::-moz-focus-inner {
+	border: none;
+}
+
+
 .wgbh-asset1-controlpanel button {
-	font-family: "Muli", sans-serif;
+
+	width: 100%;
+
+	display: block;
 
 	border: none;
 
@@ -50,26 +108,34 @@
 
 	cursor: pointer;
 
-	display: block;
+	min-height: 48px;
 
-	margin: 10px;
+	margin: 16px 0;
+	
+	padding: 0;
 
-	font-size: 20px;
+  border-radius: 14px;
 
-	font-weight: 600;
-
-  padding: 5px 10px;
-
-  border-radius: 7px;
-
-  background-color:#ffe61e;
+  background-color: #ffe61e;
 	box-shadow: 0 4px 0 0 #ffba09;
 }
 
 
+.wgbh-asset1-controlpanel-side {
+	flex: 3 3 30%;
+	margin: 0 3%;
+	padding: 0;
+}
+
+.wgbh-asset1-controlpanel-middle {
+	flex: 2 2 20%;
+	margin: auto 0;
+	padding: 0;
+}
+
 .wgbh-asset1-controlpanel button:not([disabled]):active {
 	transform: translateY(4px);
-	box-shadow: unset;
+	box-shadow: none;
 }
 
 

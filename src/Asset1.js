@@ -11,6 +11,7 @@ import './Asset1.css';
 import SkyDiagram from './SkyDiagram/SkyDiagram.js';
 
 import ControlPanel from './ControlPanel.js';
+import InfoPanel from './InfoPanel.js';
 
 
 
@@ -83,6 +84,9 @@ class Asset1 {
 		this._diagram = new SkyDiagram();
 		this._root.appendChild(this._diagram.getElement());
 
+		this._infoPanel = new InfoPanel();
+		this._root.appendChild(this._infoPanel.getElement());
+
 		this._controlPanel = new ControlPanel(this);
 		this._root.appendChild(this._controlPanel.getElement());
 
@@ -94,23 +98,73 @@ class Asset1 {
 		//	time transitions (incrementing/decrementing) in addition to continuous playing.
 		this._animFrameID = undefined;
 
-		this._minTransitionDurationMS = 300;
+		this._minTransitionDurationMS = 250;
 		this._maxTransitionDurationMS = 1000;
 
 
-		this.setSecondsPerCalendarPeriod(90);
-		this._setTime((9*24 + 15) * this._ATU_PER_HOUR);
+		this._minSkyDiagramAspectRatio = 1.3;
+		this._maxSkyDiagramAspectRatio = Number.POSITIVE_INFINITY; // 2.5 TODO
+		
+		let bb = this._root.getBoundingClientRect();
+		this._width = bb.width;
+		this._height = bb.height;
 
+
+		this.setSecondsPerCalendarPeriod(90);
+
+		this._setTime(12 * this._ATU_PER_HOUR);
 
 		this._animFrameHandler = this._animFrameHandler.bind(this);
 
 
 	}
 
+	getTimeOfDayName(timeOfDay) {
 
+		timeOfDay = (timeOfDay%1 + 1)%1;
+
+		if (timeOfDay < 0.25) {
+			return 'Nighttime';
+		} else if (timeOfDay < 0.75) {
+			return 'Daytime';
+		} else {
+			return 'Nighttime';
+		}
+	}
+
+	getMoonPhaseName(moonPhase) {
+
+		moonPhase = (moonPhase%1 + 1)%1;
+
+		let newDelta = 0.02;
+		let quarterDelta = 0.02;
+		let fullDelta = 0.05;
+
+		if (moonPhase < newDelta) {
+			return 'New Moon';
+		} else if (moonPhase < 0.25 - quarterDelta) {
+			return 'Waxing Crescent';
+		} else if (moonPhase < 0.25 + quarterDelta) {
+			return 'First Quarter';
+		} else if (moonPhase < 0.5 - fullDelta) {
+			return 'Waxing Gibbous';
+		} else if (moonPhase < 0.5 + fullDelta) {
+			return 'Full Moon';
+		} else if (moonPhase < 0.75 - quarterDelta) {
+			return 'Waning Gibbous';
+		} else if (moonPhase < 0.75 + quarterDelta) {
+			return 'Third Quarter';
+		} else if (moonPhase < 1 - newDelta) {
+			return 'Waning Crescent';
+		} else {
+			return 'New Moon';
+		}
+	}
 
 
 	_setTime(arg) {
+
+		// This method is the only place where _time should be changed.
 
 		// _time is expressed as an integer number of atomic time units (ATU). It must be kept an
 		//	integer to avoid unexpected numerical precision issues (e.g. clicking the hour increment
@@ -332,40 +386,6 @@ class Asset1 {
 		}
 	}
 
-/*
-	_onAnimPlayFrame(clock) {
-
-		if (this._isAnimating) {
-			// TODO: revise
-
-				let clockDelta = clock - this._animInitClock;
-				let timeDelta = clockDelta * this._animATUPerMS;
-				this._setTime(this._animInitTime + timeDelta);
-				this._update();
-
-//			if (this._animPrevClock !== undefined) {
-//
-//				let clockDelta = clock - this._animPrevClock;
-//		
-//				//console.log(clockDelta.toPrecision(3)+ ", " + (1000/clockDelta).toPrecision(3));
-//				
-//				let timeDelta = clockDelta * this._animATUPerMS;
-//				//console.log("timeDelta: "+timeDelta);
-//
-//				this._setTime(this._time + timeDelta);
-//				this._update();
-//			}			
-//
-//			this._animPrevClock = clock;
-		}
-
-		if (this._isAnimating) {
-			this._animFrameID = window.requestAnimationFrame(this._onAnimFrame);
-		} else {
-			this._animFrameID = undefined;
-		}
-	}
-*/
 
 	getSecondsPerCalendarPeriod() {
 		return this._secondsPerCalendarPeriod;
@@ -387,7 +407,36 @@ class Asset1 {
 	}
 
 	setParams(params) {
-		this._diagram.setParams(params);
+
+		if (params.width !== undefined || params.height !== undefined) {
+
+			let w = params.width || this._width;
+			let h = params.height || this._height;
+
+			this._root.style.width = w + 'px';
+			this._root.style.height = h + 'px';
+
+			let iph = this._infoPanel.getHeight();
+			let cph = this._controlPanel.getHeight();
+	
+			let skyParams = {
+				width: w,
+				height: h - iph - cph,
+			};
+
+			let ratio = skyParams.width / skyParams.height;
+			if (ratio < this._minSkyDiagramAspectRatio) {
+				skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
+			} else if (ratio > this._maxSkyDiagramAspectRatio) {
+				// TODO -- need to fix CSS
+			}
+	
+			this._diagram.setParams(skyParams);
+
+			this._width = w;
+			this._height = h;
+		}
+				
 	}
 
 
@@ -401,10 +450,16 @@ class Asset1 {
 		skyParams.sunPathPosition = this._timeOfDay - 0.25;
 		skyParams.moonPathPosition = skyParams.sunPathPosition - this._moonPhase;
 
+		let info = {};
+		info.day = 'Day ' + this._calendarDay;
+		info.timeOfDay = this.getTimeOfDayName(this._timeOfDay);
+		info.phaseName = this.getMoonPhaseName(this._moonPhase);
+
+		this._infoPanel.setInfo(info);
+
 		this._diagram.setParams(skyParams);
 		this._diagram.update();
 	}
-
 	
 
 	_removeAllChildren(element) {
