@@ -159,10 +159,7 @@ export default class SkyDiagram {
 		this._ground.setAttributeNS(xlinkNS, 'href', 'graphics/ground.svg');
 		this._ground.setAttribute('preserveAspectRatio', 'none');
 		this._ground.setAttribute('width', '100%');
-
 		this._foregroundGroup.appendChild(this._ground);
-
-
 
 		this._defaultParams = {
 			width: 800,
@@ -191,8 +188,67 @@ export default class SkyDiagram {
 			nightForegroundShading: 0.5,
 		};
 
+		this._foregroundObjects = [];
+
+		this.addForegroundObject({
+			url: 'graphics/tree.svg',
+			x: 0,//0.25,
+			y: 0,//0.5,
+			cx: 0.5,
+			cy: 1.0,
+			width: 0.1,
+			aspectRatio: 150/175,
+		});
+
 		this.setParams(this._defaultParams);
 	}
+
+
+	addForegroundObject(fobj) {
+
+		// fobj must be an object with the following parameters:
+		//	- url: the object's image URL,
+		//	- x, y: the relative position of the object's origin,
+		//	- width: the relative width of the object,
+		//	- aspectRatio: defined as relativeWidth/relativeHeight, and
+		//	- cx, cy (optional): the offset of the object's center, as fractions of its width
+		//		and height; if undefined, the default is the upper-left corner at <0,0>.
+
+		// The position is defined such that:
+		//  x = 0.0 corresponds to the left horizon point (the horizon and path intersection),
+		//	x = 1.0 corresponds to the right horizon point,
+		//	y = 0.0 corresponds to the horizon level, and
+		//	y = 1.0 corresponds to the bottom edge of the diagram.
+		// So the position is defined in a left-hand system.
+		// If the horizon parameter is 0 all y-values are essentially ignored and the foreground
+		//	objects will be placed at the bottom of the diagram.	
+
+		// The width is defined as a fraction of the distance between the left horizon point
+		//  and the right horizon point. E.g. if there are 400px between the two points and
+		//	width is set to the 0.1, the foreground object will be 40px wide.
+		// The height of the object is scaled automatically to preserve the aspect ratio.
+
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const xlinkNS = 'http://www.w3.org/1999/xlink';
+
+		let image = document.createElementNS(svgNS, 'image');
+		image.setAttributeNS(xlinkNS, 'href', fobj.url);
+		image.setAttribute('preserveAspectRatio', 'xMinYMin');
+		this._foregroundGroup.appendChild(image);
+
+		let copy = {};
+		copy.url = fobj.url;
+		copy.x = fobj.x;
+		copy.y = fobj.y;
+		copy.cx = fobj.cx;
+		copy.cy = fobj.cy;
+		copy.width = fobj.width;
+		copy.aspectRatio = fobj.aspectRatio;
+		copy.image = image;
+
+		this._foregroundObjects.push(copy);
+	}
+
 
 
 	getElement() {
@@ -521,6 +577,7 @@ export default class SkyDiagram {
 
 		if (this._needsUpdateLayout) {
 			this._updateLayout();
+			this._layoutForegroundObjects();
 		}
 
 		if (this._needsPrepPath) {
@@ -575,7 +632,7 @@ export default class SkyDiagram {
 		this._horizonY = this._contentHeight*(1 - this._horizon);
 		let groundHeight = 2*(this._contentHeight - this._horizonY);
 
-		if (this._groundHeight === 0) {
+		if (groundHeight === 0) {
 			this._ground.setAttribute('display', 'none');
 		} else {
 			this._ground.setAttribute('display', 'inline');
@@ -584,9 +641,46 @@ export default class SkyDiagram {
 			this._ground.setAttribute('y', this._contentHeight - groundHeight);
 		}
 
+		this._foregroundXOrigin = this._contentWidth * this._margin;
+		this._foregroundUnitWidth = this._contentWidth*(1 - 2*this._margin);
+		this._foregroundYOrigin = this._horizonY;
+		this._foregroundUnitHeight = this._contentHeight * this._horizon;
+
 		this._skyBottomStop.setAttribute('offset', this._horizon);
 
 		this._needsUpdateLayout = false;
+	}
+
+
+	_layoutForegroundObjects() {
+
+		for (let i = 0; i < this._foregroundObjects.length; ++i) {
+
+			let obj = this._foregroundObjects[i];
+			
+			let width = obj.width * this._foregroundUnitWidth;
+			obj.image.setAttribute('width', width + 'px');
+			
+			let height = width / obj.aspectRatio;
+			obj.image.setAttribute('height', height + 'px');
+
+			let cx = 0;	
+			if (obj.cx !== undefined) {
+				cx = obj.cx * width;
+			}
+
+			let cy = 0;
+			if (obj.cy !== undefined) {
+				cy = obj.cy * height;
+			}
+
+			let x = this._foregroundXOrigin - cx + obj.x*this._foregroundUnitWidth;
+			let y = this._foregroundYOrigin - cy + obj.y*this._foregroundUnitHeight;
+
+			obj.image.setAttribute('x', x + 'px');
+			obj.image.setAttribute('y', y + 'px');
+
+		}	
 	}
 
 

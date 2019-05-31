@@ -16,7 +16,7 @@ import InfoPanel from './InfoPanel.js';
 
 
 var versionNum = '0.0';
-var versionDateStr = '2019-05-28-xxxx';
+var versionDateStr = '2019-05-30-xxxx';
 
 
 
