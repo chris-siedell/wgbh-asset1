@@ -1,52 +1,57 @@
 /*
-SkyDiagram
-wgbh/asset1
+SkyDiagram.css
+wgbh-skydiagram
 astro.unl.edu
-2019-05-13
+2019-06-01
 */
 
+/*
 .wgbh-asset1-no-user-select {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
 }
+*/
 
-.wgbh-asset1-skydiagram-root {
+
+.wgbh-skydiagram-root {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
 
+	position: relative;
+	padding: 0;
+	margin: 0;
+
 	overflow: hidden;
 
-	position: relative;
-	padding: 0;
-	margin: 0;
-
 	background-color: black;
-	border: none; /*40px solid black;*/
 	box-sizing: border-box;
+	
+	border: none;
 }
 
-.wgbh-asset1-skydiagram-content {
+
+.wgbh-skydiagram-svg {
 	position: relative;
 	padding: 0;
 	margin: 0;
-	
-	background-color: black;
 	border: none;
 	width: 100%;
 	height: 100%;
 }
 
-.wgbh-asset1-skydiagram-absolute {
+
+/*
+.wgbh-skydiagram-absolute {
 	position: relative;
 	padding: 0;
 	margin: 0;
 	top: 0;
 	left: 0;
 }
-
+*/
 
 
