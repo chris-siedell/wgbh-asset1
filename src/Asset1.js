@@ -62,8 +62,6 @@ class Asset1 {
 		//	of 12 hours has the new moon occur at noon on the first calendar day.
 		this._SYNODIC_OFFSET = 12 * this._ATU_PER_HOUR;
 
-		this._SYNODIC_OFFSET = (-24*5) * this._ATU_PER_HOUR;
-
 		// _TIME_CYCLE must contain an integer number of both synodic and calendar periods (in ATUs).
 		//	It must also be less than half of Number.MAX_SAFE_INTEGER to avoid integer overflow and to
 		//	allow for modular arithmetic.
@@ -144,7 +142,7 @@ class Asset1 {
 
 		this.setSecondsPerCalendarPeriod(90);
 
-		this._setTime(14 * this._ATU_PER_HOUR);
+		this._setTime(134.1 * this._ATU_PER_HOUR);
 
 		this._animFrameHandler = this._animFrameHandler.bind(this);
 
