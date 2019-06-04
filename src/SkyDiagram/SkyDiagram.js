@@ -9,23 +9,24 @@ astro.unl.edu
 import './css/SkyDiagram.css';
 
 // The code for SkyDiagram has been separated out into these sub-objects:
-import './js/MainGeometry.js';
-import './js/TrackGeometry.js';
-import './js/Sky.js';
-import './js/Track.js';
-import './js/Sun.js';
-import './js/Moon.js';
-import './js/TerrestrialGroup.js';
-import './js/Ground.js';
-import './js/ForegroundObjects.js';
+import MainGeometry from './js/MainGeometry.js';
+import TrackGeometry from './js/TrackGeometry.js';
+import Sky from './js/Sky.js';
+import Track from './js/Track.js';
+import Sun from './js/Sun.js';
+import Moon from './js/Moon.js';
+import TerrestrialGroup from './js/TerrestrialGroup.js';
+import Ground from './js/Ground.js';
+//import ForegroundObjects from './js/ForegroundObjects.js';
 
 /*
 
-Methods:
+SkyDiagram Methods:
 	getParams()					- returns an object with current values of all parameters
 	setParams(params) 	- sets one or more parameters using the params object; lightweight; no
-												significant calculations or redrawing occurs until update is called
-	update()						- applies all parameter values and redraws the diagram
+												significant calculations or redrawing occurs until update is called;
+												the params object is copied and values validated and normalized
+	update()						- applies all parameter value changes and redraws the diagram
 	getElement()				- returns the HTML element for the diagram; important: the component
 												manually resizes the element based on the width and height parameters
 
@@ -44,23 +45,31 @@ Parameters are set by calling setParams, which takes as an argument an object wi
 Setting parameters is designed to be a light-weight operation. No significant
 	calculations or redrawing of the diagram occurs until update is called.
 
+Calling update on the SkyDiagram component causes the update methods to be called on the various
+	sub-objects. These in turn use internal sub-methods to update just the parts of the
+	diagram that need to be updated, improving performance.
+
+Determining which sub-methods to call is managed by using flags, both internal (referenced only
+	within that sub-object), and external (reference by other, dependent sub-objects).
+
 When a parameter has been set on a sub-object, one or more internal flags are set. These flags
-	are named "_needs_method", where "_method" is the name of the internal update method that
+	are named "_needs_method", where "_method" is the name of the internal update sub-method that
 	will need to be called on the next update.
 
 When update is called on a sub-object, it first inspects any other sub-objects it depends on
 	to see if an external flag has been raised that might affect it. If so, the necessary
-	internal flag will be set before starting to call internal update sub-methods.
+	internal flag(s) will be set before starting to call internal update sub-methods.
 
 External flags are not raised until update is called. They stay raised until clearFlags
-	is called.
+	is called. Internal flags are cleared when the corresponding sub-method finishes
+	successfully.
 
 Example:
 	The sun graphic is constrained to the sun-moon track. The sunPosition parameter controls
 	where on the track the sun is placed. So when sunPosition has been set the Sun object
 	raises its internal _needs_transformSun flag (_transformSun is responsible for moving
 	the sun graphic). The actual screen point on the track is determined by the TrackGeometry
-	object, so before starting its internal updates the Sun object needs to check the TrackGeometry
+	object, so before starting its internal updates the Sun object checks the TrackGeometry
 	object to see if the track has changed (by calling getHasTrackChanged on the TrackGeometry
 	object). If the track has changed then _transformSun will need to be called, even if the
 	position hasn't changed. The _transformSun method raises the Sun object's external
@@ -84,11 +93,11 @@ export default class SkyDiagram {
 		this._subs.moon								= new Moon();
 		this._subs.terrestrialGroup		= new TerrestrialGroup();
 		this._subs.ground							= new Ground();
-		this._subs.foregroundObjects	= new ForegroundObjects();
+//		this._subs.foregroundObjects	= new ForegroundObjects();
 
 		// The linking step allows the sub-objects to make any necessary
 		//	references to each other.
-		for (let key in this._subs) {
+		for (const key in this._subs) {
 			this._subs[key].link(this._subs);
 		}	
 		
@@ -107,13 +116,13 @@ export default class SkyDiagram {
 		svg.appendChild(this._subs.sun.getElement());
 		svg.appendChild(this._subs.moon.getElement());
 
-		// Everything in the terrestrial group is shaded at nighttime.
+		svg.appendChild(this._subs.terrestrialGroup.getFilter());
 
 		let terrestrialGroup = this._subs.terrestrialGroup.getElement();
 		svg.appendChild(terrestrialGroup);
 
 		terrestrialGroup.appendChild(this._subs.ground.getElement());
-		terrestrialGroup.appendChild(this._subs.foregroundObjects.getElement());
+//		terrestrialGroup.appendChild(this._subs.foregroundObjects.getElement());
 	}
 
 
@@ -148,21 +157,21 @@ export default class SkyDiagram {
 	*/
 
 	update() {
+		console.log("\n*** UPDATE ***");
 
-		// The update order is important due to dependencies.
+		// The update order is significant due to dependencies.
 		this._subs.mainGeometry.update();
 		this._subs.trackGeometry.update();
 		this._subs.sun.update();
 		this._subs.moon.update();
 		this._subs.sky.update();
 		this._subs.track.update();
-		this._subs.ground.update();
-		this._subs.foregroundObjects.update();
 		this._subs.terrestrialGroup.update();
+		this._subs.ground.update();
+//		this._subs.foregroundObjects.update();
 
 		// Clearing flags can be done in any order.
 		for (const key in this._subs) {
-			console.log('Clearing flags for ' + key);
 			this._subs[key].clearFlags();
 		}
 	}

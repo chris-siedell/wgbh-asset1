@@ -166,7 +166,7 @@ export default class Ground {
 			let newGround = document.createElementNS(svgNS, 'image');
 			newGround.setAttributeNS(xlinkNS, 'href', this._params.groundImageSrc);
 			newGround.setAttribute('preserveAspectRatio', 'none');
-			newGround.setAttribute('x', 0;
+			newGround.setAttribute('x', 0);
 			newGround.setAttribute('width', '100%');
 
 			if (this._ground !== undefined) {

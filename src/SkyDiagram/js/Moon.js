@@ -45,7 +45,8 @@ Flags:
 Special Methods:
 	getElement
 	getPosition		- always in range [0, 1)
-	getPoint			- an object with x and y properties, in pixels, for the center of the moon disc
+	getPoint			- an object with x andd y properties, in pixels, for the center of the moon disc,
+									as well as an angle property, which is the track's tangent angle, in radians
 	getRadius			- in pixels
 
 Dependencies:
@@ -188,7 +189,7 @@ export default class Moon {
 			this._needs_replaceMoonImage = true;	
 		}
 
-		if (vp.hasOwnProperty('moonNoImageColor') {
+		if (vp.hasOwnProperty('moonNoImageColor')) {
 			this._needs_redrawMoonDisc = true;
 		}
 	}	
@@ -246,6 +247,31 @@ export default class Moon {
 			throw new Error('The image src must be a string.');
 		}
 		return arg;
+	}
+
+
+	/*
+	**	Special Methods
+	*/
+
+	getElement() {
+		return this._element;
+	}
+	
+	getPosition() {
+		return this._params.moonPosition;
+	}
+	
+	getPoint() {
+		return {
+			x: this._point.x,
+			y: this._point.y,
+			angle: this._point.angle
+		};
+	}
+
+	getRadius() {
+		return this._radius;
 	}
 
 
@@ -348,6 +374,10 @@ export default class Moon {
 		console.log(' Moon._redrawMoonDisc');
 		// This method is for redrawing the moon when it is a filled circle (no image).
 		// TODO: test for condition
+		let nodeName = this._moon.nodeName;
+		let tagName = this._moon.tagName;
+		console.log('  _moon nodeName: '+nodeName);
+		console.log('  _moon tagName: '+tagName);
 		this._moon.setAttribute('fill', this._params.moonNoImageColor);
 		this._needs_redrawMoonDisc = false;
 	}
@@ -390,100 +420,5 @@ export default class Moon {
 	}
 
 }
-
-
-
-
-
-
-/****************/
-
-
-
-
-
-
-		// Layer 4: The Moon
-
-
-		// The element _moon will be created and appended to _moonGroup in _replaceMoonImage.
-
-	_redrawPhase() {
-
-
-
-	_recalcSunAndMoonPts() {
-		// The _sunPt and _moonPt objects will have these properties:
-		// 	x, y: the screen coordinates (LHS with the origin in the upper left of diagram),
-		//  angle: the angle, in radians, of the tangent at that position,
-		//  radius: the radius of the disc, in pixels,
-		//	scale: the scale needed to be applied to the graphic to achieve the desired radius,
-		//  transform: the transform string to assign to the given object's group.
-
-		this._sunPt = this.getScreenPointForPathPosition(this._sunPathPosition);
-		this._moonPt = this.getScreenPointForPathPosition(this._moonPathPosition);
-
-		let diagonal = Math.sqrt(this._contentWidth*this._contentWidth + this._contentHeight*this._contentHeight);
-		let diameter = this._sunAndMoonSize * diagonal;
-	
-		let radius = 0.5 * this._sunAndMoonSize * diagonal;
-		this._sunPt.radius = radius;
-		this._moonPt.radius = radius;
-		
-		let scale = (this._sunAndMoonSize * diagonal) / 80;
-		this._sunPt.scale = scale;
-		this._moonPt.scale = scale;
-
-		let sunTransform = '';
-		sunTransform += 'rotate(' + (this._sunPt.angle * 180 / Math.PI) + ', ' + this._sunPt.x + ', ' + this._sunPt.y + ')';
-		sunTransform += ' translate(' + this._sunPt.x + ', ' + this._sunPt.y + ')';
-		sunTransform += ' scale(' + this._sunPt.scale + ')';
-		this._sunPt.transform = sunTransform;
-
-		let moonTransform = '';
-		moonTransform += 'rotate(' + (this._moonPt.angle * 180 / Math.PI) + ', ' + this._moonPt.x + ', ' + this._moonPt.y + ')';
-		moonTransform += ' translate(' + this._moonPt.x + ', ' + this._moonPt.y + ')';
-		moonTransform += ' scale(' + this._moonPt.scale + ')';
-		this._moonPt.transform = moonTransform;
-		
-		this._needsRecalcSunAndMoonPts = false;
-	}
-
-	_moveSunAndMoon() {
-		this._sunGroup.setAttribute('transform', this._sunPt.transform);
-		this._moonGroup.setAttribute('transform', this._moonPt.transform);
-	}
-
-
-	getMoonPathPosition() {
-		return this._moonPathPosition;
-	}
-
-	setMoonPathPosition(arg) {
-		this._moonPathPosition = this.validateObjectPathPosition(arg);
-		this._needsRecalcSunAndMoonPts = true;
-	}	
-
-
-	getSunPathPosition() {
-		return this._sunPathPosition;
-	}
-
-	setSunPathPosition(arg) {
-		this._sunPathPosition = this.validateObjectPathPosition(arg);
-		this._needsRecalcSunAndMoonPts = true;
-	}
-
-
-
-
-	getSunAndMoonSize() {
-		return this._sunAndMoonSize;
-	}
-
-	setSunAndMoonSize(arg) {
-		this._sunAndMoonSize = this.validateNumber(arg, 'sunAndMoonSize');
-		this._needsRecalcSunAndMoonPts = true;
-	}
 
 

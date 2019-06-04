@@ -52,7 +52,7 @@ export default class Track {
 		this._maskRect.setAttribute('y', 0);
 		this._maskRect.setAttribute('width', '100%');
 		this._maskRect.setAttribute('height', '100%');
-		this._mask.appendChild(this._mask);
+		this._mask.appendChild(this._maskRect);
 
 		this._moonCutout = document.createElementNS(svgNS, 'circle');
 		this._moonCutout.setAttribute('fill', 'black');
@@ -152,7 +152,7 @@ export default class Track {
 			this._needs_redrawTrack = true;
 		}
 
-		if (vp.cutoutSize !== undefined) {
+		if (vp.trackCutoutSize !== undefined) {
 			this._needs_redrawCutouts = true;
 		}
 	}	
@@ -226,10 +226,10 @@ export default class Track {
 	_redrawCutouts() {
 		console.log(' Track._redrawCutouts');
 
-		let moonCutoutRadius = this._params.cutoutSize * this._moon.getRadius();
+		let moonCutoutRadius = this._params.trackCutoutSize * this._moon.getRadius();
 		this._moonCutout.setAttribute('r', moonCutoutRadius);
 		
-		let sunCutoutRadius = this._params.cutoutSize * this._sun.getRadius();
+		let sunCutoutRadius = this._params.trackCutoutSize * this._sun.getRadius();
 		this._sunCutout.setAttribute('r', sunCutoutRadius);
 
 		this._needs_redrawCutouts = false;

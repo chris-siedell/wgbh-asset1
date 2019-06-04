@@ -2,7 +2,7 @@
 Asset1
 WGBH
 astro.unl.edu
-2019-05-27
+2019-06-03
 */
 
 
@@ -92,6 +92,13 @@ class Asset1 {
 		this._controlPanel = new ControlPanel(this);
 		this._root.appendChild(this._controlPanel.getElement());
 
+		let diagramSettings = {
+			sunImageSrc: 'graphics/sun.svg',
+			moonImageSrc: 'graphics/moon.svg',
+			groundImageSrc: 'graphics/ground.svg'
+		};
+		this._diagram.setParams(diagramSettings);
+
 		// _isPlaying signifies that the simulation is running continuously.
 		this._isPlaying = false;
 
@@ -127,7 +134,7 @@ class Asset1 {
 
 		if (timeOfDay < 0.25) {
 			return 'Nighttime';
-		} else if (timeOfDay < 0.75) {
+		} else if (timeOfDay <= 0.75) {
 			return 'Daytime';
 		} else {
 			return 'Nighttime';
@@ -449,8 +456,8 @@ class Asset1 {
 	_update() {
 
 		let skyParams = {};
-		skyParams.sunPathPosition = this._timeOfDay - 0.25;
-		skyParams.moonPathPosition = skyParams.sunPathPosition - this._moonPhase;
+		skyParams.sunPosition = this._timeOfDay - 0.25;
+		skyParams.moonPosition = skyParams.sunPosition - this._moonPhase;
 
 		let info = {};
 		info.day = 'Day ' + this._calendarDay;

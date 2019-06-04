@@ -220,10 +220,12 @@ export default class MainGeometry {
 		this._root.style.width = this._params.width + 'px';
 		this._root.style.height = this._params.height + 'px';
 
+		// TODO: consider whether the SVG should be detached temporarily
+
 		this._contentWidth = this._root.clientWidth;
 		this._contentHeight = this._root.clientHeight;
 
-		this._main.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
+		this._svg.setAttribute('viewBox', '0 0 ' + this._contentWidth + ' ' + this._contentHeight);
 		
 		this._needs_updateDimensions = false;
 	}

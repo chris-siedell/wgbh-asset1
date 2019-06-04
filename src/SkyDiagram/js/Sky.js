@@ -46,7 +46,7 @@ export default class Sky {
 		let skyGradient = document.createElementNS(svgNS, 'linearGradient');
 		skyGradient.setAttribute('id', 'sky-gradient');
 		skyGradient.setAttribute('gradientTransform', 'rotate(-90, 1, 0)');
-		this._element.appendChild(skyGradient);
+		defs.appendChild(skyGradient);
 
 		this._skyBottomStop = document.createElementNS(svgNS, 'stop');
 		this._skyBottomStop.setAttribute('offset', '0');
@@ -189,13 +189,17 @@ export default class Sky {
 		let sunPosition = this._sun.getPosition();
 
 		// TODO: dusk, dawn
+		// TODO: don't assign attributes if no change
+
+
+		console.log('=== sunPosition: '+sunPosition);
 
 		if (sunPosition <= 0.5) {
-			this._skyBottomStop.setAttribute('stop-color', this._dayBottomColor);
-			this._skyTopStop.setAttribute('stop-color', this._dayTopColor);
+			this._skyBottomStop.setAttribute('stop-color', this._params.dayBottomColor);
+			this._skyTopStop.setAttribute('stop-color', this._params.dayTopColor);
 		} else {
-			this._skyBottomStop.setAttribute('stop-color', this._nightBottomColor);
-			this._skyTopStop.setAttribute('stop-color', this._nightTopColor);
+			this._skyBottomStop.setAttribute('stop-color', this._params.nightBottomColor);
+			this._skyTopStop.setAttribute('stop-color', this._params.nightTopColor);
 		}
 
 		this._needs_redrawSky = false;
