@@ -2,7 +2,7 @@
 ForegroundObjects.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-03
+2019-06-04
 */
 
 /*
@@ -45,6 +45,7 @@ Special Methods:
 
 Dependencies:
 	MainGeometry
+	Sun
 
 */
 
@@ -75,6 +76,7 @@ export default class ForegroundObjects {
 
 	link(otherObjects) {
 		this._mainGeometry = otherObjects.mainGeometry;
+		this._sun = otherObjects.sun;
 	}
 
 
@@ -90,6 +92,10 @@ export default class ForegroundObjects {
 			this._needs_transformObjects = true;
 		}
 
+		if (this._sun.getHasPositionChanged()) {
+			this._needs_toggleVisibility = true;
+		}
+
 		// Call internal update sub-methods as required.
 
 		if (this._needs_replaceObjects) {
@@ -98,6 +104,10 @@ export default class ForegroundObjects {
 
 		if (this._needs_transformObjects) {
 			this._transformObjects();
+		}
+
+		if (this._needs_toggleVisibility) {
+			this._toggleVisibility();
 		}
 	}
 
@@ -151,9 +161,6 @@ export default class ForegroundObjects {
 		let vp = {};
 
 		if (!Array.isArray(arg)) {
-			console.log(arg);
-			console.log(Array.isArray(arg));
-			console.log(typeof arg);
 			throw new Error('The foregroundObjects parameter must be an array.');
 		}
 
@@ -167,6 +174,7 @@ export default class ForegroundObjects {
 	_copyForegroundObjects(arg) {
 		let copy = [];
 		// TODO: do manual/limited copy, since arg may be user supplied
+		// TODO: also, copy at depth
 		for (let i = 0; i < arg.length; ++i) {
 			copy[i] = Object.assign({}, arg[i]);
 		}
@@ -188,7 +196,7 @@ export default class ForegroundObjects {
 	*/
 
 	_transformObjects() {
-		console.log(' ForegroundObjects._transformObjects');
+		//console.log(' ForegroundObjects._transformObjects');
 
 		let layoutProps = this._mainGeometry.getLayoutProps();
 
@@ -227,14 +235,74 @@ export default class ForegroundObjects {
 		this._needs_transformObjects = false;
 	}
 
+	_toggleVisibility() {
+		//console.log(' ForegroundObjects._toggleVisibility');
+	
+		let sunPosition = this._sun.getPosition();
+
+		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
+
+			let obj = this._params.foregroundObjects[i];
+
+			// The optional visibility parameter allows restricting when the foreground
+			//	object is shown. If it is not defined then the object is always visible.
+			if (obj.visibility === undefined) {
+				continue;
+			}
+
+			if (obj.visibility.sunPosition !== undefined) {
+				// The sunPosition array allows restricting the visibility of the object to
+				//	specific intervals defined by the sun's position (i.e. time). These intervals
+				//	are defined by objects with begin and end properties, which should be
+				//	sun positions in the interval [0, 1).
+
+				let intervals = obj.visibility.sunPosition;
+	
+				let isVisible = false;
+	
+				for (let j = 0; j < intervals.length; ++j) {
+
+					let interval = intervals[j];
+
+					if (interval.begin < interval.end) {
+						// No wraparound.
+						if (sunPosition >= interval.begin && sunPosition <= interval.end) {
+							isVisible = true;
+							break;
+						}
+					} else {
+						// Wraparound.
+						if (sunPosition >= interval.begin || sunPosition <= interval.end) {
+							isVisible = true;
+							break;
+						}
+					}
+				}
+
+				// Assign attribute only if there's a change.
+				if (obj.isVisible !== isVisible) {
+					if (isVisible) {
+						obj.image.setAttribute('display', 'inline');
+					} else {
+						obj.image.setAttribute('display', 'none');
+					}
+					obj.isVisible = isVisible;
+				}
+			}
+		}
+
+		this._needs_toggleVisibility = false;
+	}
+
 	_replaceObjects() {
-		console.log(' ForegroundObjects._replaceObjects');
+		//console.log(' ForegroundObjects._replaceObjects');
 
 		// The ForegroundObjects object removes and reattaches the objects every time
 		//	the parameter is set.
 		// TODO: change this
 
 		this._needs_transformObjects = true;
+		this._needs_toggleVisibility = true;
 
 		this._removeAllChildren(this._element);
 
@@ -248,6 +316,7 @@ export default class ForegroundObjects {
 			this._element.appendChild(image);
 
 			obj.image = image;
+			obj.isVisible = true;
 		}
 
 		this._needs_replaceObjects = false;

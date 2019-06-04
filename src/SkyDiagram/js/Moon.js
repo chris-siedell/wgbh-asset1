@@ -280,7 +280,7 @@ export default class Moon {
 	*/
 
 	_redrawPhaseMask() {
-		console.log(' Moon._redrawPhaseMask');
+		//console.log(' Moon._redrawPhaseMask');
 
 		// This method needs to be called if either the moon's or the sun's positions
 		//	have changed.
@@ -328,7 +328,7 @@ export default class Moon {
 	}
 
 	_transformMoon() {
-		console.log(' Moon._transformMoon');
+		//console.log(' Moon._transformMoon');
 
 		// This method applies a transform to the group element containing the moon that
 		//	simultaneously sizes, positions, and rotates the graphic. The graphic is rotated
@@ -371,7 +371,7 @@ export default class Moon {
 
 
 	_redrawMoonDisc() {
-		console.log(' Moon._redrawMoonDisc');
+		//console.log(' Moon._redrawMoonDisc');
 		// This method is for redrawing the moon when it is a filled circle (no image).
 		// TODO: test for condition
 		let nodeName = this._moon.nodeName;
@@ -384,7 +384,7 @@ export default class Moon {
 
 
 	_replaceMoonImage() {
-		console.log(' Moon._replaceMoonImage');
+		//console.log(' Moon._replaceMoonImage');
 
 		let newMoon;
 

@@ -184,7 +184,7 @@ export default class Sky {
 	*/
 
 	_redrawSky() {
-		console.log(' Sky._redrawSky');
+		//console.log(' Sky._redrawSky');
 
 		let sunPosition = this._sun.getPosition();
 
@@ -203,7 +203,7 @@ export default class Sky {
 	}
 
 	_adjustSkyHorizon() {
-		console.log(' Sky._adjustSkyHorizon');
+		//console.log(' Sky._adjustSkyHorizon');
 
 		// The bottom of the sky starts at the horizon level.
 

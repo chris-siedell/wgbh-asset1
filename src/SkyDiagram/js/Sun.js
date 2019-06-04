@@ -263,7 +263,7 @@ export default class Sun {
 	*/
 
 	_transformSun() {
-		console.log(' Sun._transformSun');
+		//console.log(' Sun._transformSun');
 
 		// This method applies a transform to the group element containing the sun that
 		//	simultaneously sizes, positions, and rotates the graphic. The graphic is rotated
@@ -306,7 +306,7 @@ export default class Sun {
 
 
 	_redrawSunDisc() {
-		console.log(' Sun._redrawSunDisc');
+		//console.log(' Sun._redrawSunDisc');
 		// This method is for redrawing the sun when it is a filled circle (no image).
 		// TODO: test for condition
 		let nodeName = this._sun.nodeName;
@@ -320,7 +320,7 @@ export default class Sun {
 
 
 	_replaceSunImage() {
-		console.log(' Sun._replaceSunImage');
+		//console.log(' Sun._replaceSunImage');
 
 		let newSun;
 

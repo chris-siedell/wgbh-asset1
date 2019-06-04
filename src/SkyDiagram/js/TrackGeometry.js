@@ -278,7 +278,7 @@ export default class TrackGeometry {
 	*/
 
 	_updateTrack() {
-		console.log(' TrackGeometry._updateTrack');
+		//console.log(' TrackGeometry._updateTrack');
 
 		//let startTime = performance.now();
 

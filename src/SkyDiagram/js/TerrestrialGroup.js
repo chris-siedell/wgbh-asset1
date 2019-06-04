@@ -175,7 +175,7 @@ export default class TerrestrialGroup {
 	*/
 
 	_updateFilter() {
-		console.log(' TerrestrialGroup._updateFilter');
+		//console.log(' TerrestrialGroup._updateFilter');
 
 		// TODO: dusk, dawn
 
@@ -202,11 +202,11 @@ export default class TerrestrialGroup {
 			if (newShadingLevel === 1) {
 				// Going from some shading to no shading -- un-assign the filter.
 				this._element.setAttribute('filter', 'none');
-				console.log('  ...removing filter');
+				//console.log('  ...removing filter');
 			} else if (this._shadingLevel === 1) {
 				// Going from no shading to some shading -- re-assign the filter.
 				this._element.setAttribute('filter', 'url(#terrestrial-filter)');
-				console.log('  ...adding filter');
+				//console.log('  ...adding filter');
 			}
 
 			this._shadingLevel = newShadingLevel;
@@ -217,7 +217,7 @@ export default class TerrestrialGroup {
 			this._filterMatrix.setAttribute('values', n + ' 0 0 0 0  0 ' + n + ' 0 0 0  0 0 ' + n + ' 0 0  0 0 0 1 0');
 
 		} else {
-			console.log('  ...no change');
+			//console.log('  ...no change');
 			// No change to shading level -- nothing needs to be done.
 		}
 

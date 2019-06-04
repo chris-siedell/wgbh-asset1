@@ -156,7 +156,7 @@ export default class Ground {
 	*/
 
 	_replaceGroundImage() {
-		console.log(' Ground._replaceGroundImage');
+		//console.log(' Ground._replaceGroundImage');
 
 		this._needs_adjustGroundImage = true;
 
@@ -191,7 +191,7 @@ export default class Ground {
 	}
 
 	_adjustGroundImage() {
-		console.log(' Ground._adjustGroundImage');
+		//console.log(' Ground._adjustGroundImage');
 	
 		// The method adjusts the vertical placement and scaling of the ground image.
 

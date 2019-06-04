@@ -216,7 +216,7 @@ export default class Track {
 	*/
 
 	_redrawTrack() {
-		console.log(' Track._redrawTrack');
+		//console.log(' Track._redrawTrack');
 		this._trackPath.setAttribute('stroke', this._params.trackColor);
 		this._trackPath.setAttribute('stroke-width', this._params.trackWidth);
 		this._trackPath.setAttribute('d', this._trackGeometry.getTrackPathData());
@@ -224,7 +224,7 @@ export default class Track {
 	}
 
 	_redrawCutouts() {
-		console.log(' Track._redrawCutouts');
+		//console.log(' Track._redrawCutouts');
 
 		let moonCutoutRadius = this._params.trackCutoutSize * this._moon.getRadius();
 		this._moonCutout.setAttribute('r', moonCutoutRadius);
@@ -236,7 +236,7 @@ export default class Track {
 	}
 
 	_moveCutouts() {
-		console.log(' Track._moveCutouts');
+		//console.log(' Track._moveCutouts');
 		
 		let moonPt = this._moon.getPoint();
 		this._moonCutout.setAttribute('cx', moonPt.x);

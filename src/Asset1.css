@@ -86,7 +86,7 @@
 
 
 .wgbh-asset1-controlpanel button:focus {
-	outline: 6px double white;
+	outline: 6px solid white;
 	outline-offset: 3px;
 	border: none;
 }

@@ -157,7 +157,7 @@ export default class SkyDiagram {
 	*/
 
 	update() {
-		console.log("\n*** UPDATE ***");
+		//console.log("\n*** UPDATE ***");
 
 		// The update order is significant due to dependencies.
 		this._subs.mainGeometry.update();

@@ -1,8 +1,8 @@
 /*
-Asset1
-WGBH
+Asset1.js
+wgbh-asset1
 astro.unl.edu
-2019-06-03
+2019-06-04
 */
 
 
@@ -16,7 +16,7 @@ import InfoPanel from './InfoPanel.js';
 
 
 var versionNum = '0.0';
-var versionDateStr = '2019-05-30-xxxx';
+var versionDateStr = '2019-06-04';
 
 
 
@@ -92,12 +92,12 @@ class Asset1 {
 
 		let diagramSettings = {
 			sunImageSrc: 'graphics/sun.svg',
-			moonImageSrc: 'graphics/moon.svg',
+			moonImageSrc: 'graphics/Boston1_v6_moon-realistic.png',//moon.svg',
 			groundImageSrc: 'graphics/ground.svg',
 			foregroundObjects: [
 				{ imageSrc: 'graphics/tree.svg',
-					x: 0,//0.25,
-					y: 0,//0.5,
+					x: -0.05,
+					y: 0.05,
 					cx: 0.5,
 					cy: 1.0,
 					width: 0.1,
@@ -115,7 +115,13 @@ class Asset1 {
 					cx: 0.5,
 					cy: 0.95,
 					width: 0.30,
-					aspectRatio: 245/145},
+					aspectRatio: 245/145,
+					visibility: {
+						sunPosition: [
+							{begin: ((9 - 6)/24), end: ((18 - 6)/24)},
+						],
+					},
+				},
 			],
 		};
 		this._diagram.setParams(diagramSettings);

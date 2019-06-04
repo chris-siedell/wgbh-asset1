@@ -211,7 +211,7 @@ export default class MainGeometry {
 	*/
 
 	_updateDimensions() {
-		console.log(' MainGeometry._updateDimensions');
+		//console.log(' MainGeometry._updateDimensions');
 		
 		this._haveDimensionsChanged = true;
 
@@ -232,7 +232,7 @@ export default class MainGeometry {
 
 
 	_updateLayoutProps() {
-		console.log(' MainGeometry._updateLayoutProps');
+		//console.log(' MainGeometry._updateLayoutProps');
 
 		this._haveLayoutPropsChanged = true;
 
