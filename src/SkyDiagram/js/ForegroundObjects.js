@@ -1,27 +1,13 @@
+/*
+ForegroundObjects.js
+wgbh-skydiagram
+astro.unl.edu
+2019-06-03
+*/
 
-		this._foregroundGroup = document.createElementNS(svgNS, 'g');
-		main.appendChild(this._foregroundGroup);
+/*
 
-
-
-
-		this.addForegroundObject({
-			url: 'graphics/tree.svg',
-			x: 0,//0.25,
-			y: 0,//0.5,
-			cx: 0.5,
-			cy: 1.0,
-			width: 0.1,
-			aspectRatio: 150/175,
-		});
-
-
-			this._foregroundXOrigin = this._contentWidth * this._margin;
-			this._foregroundUnitWidth = this._contentWidth*(1 - 2*this._margin);
-			this._foregroundYOrigin = this._horizonY;
-			this._foregroundUnitHeight = this._contentHeight * this._horizon;
-
-	addForegroundObject(fobj) {
+// TODO
 
 		// fobj must be an object with the following parameters:
 		//	- url: the object's image URL,
@@ -45,37 +31,181 @@
 		//	width is set to the 0.1, the foreground object will be 40px wide.
 		// The height of the object is scaled automatically to preserve the aspect ratio.
 
-		let image = document.createElementNS(svgNS, 'image');
-		image.setAttributeNS(xlinkNS, 'href', fobj.url);
-		image.setAttribute('preserveAspectRatio', 'xMinYMin');
-		this._foregroundGroup.appendChild(image);
 
-		let copy = {};
-		copy.url = fobj.url;
-		copy.x = fobj.x;
-		copy.y = fobj.y;
-		copy.cx = fobj.cx;
-		copy.cy = fobj.cy;
-		copy.width = fobj.width;
-		copy.aspectRatio = fobj.aspectRatio;
-		copy.image = image;
 
-		this._foregroundObjects.push(copy);
+
+Parameters:
+	foregroundObjects
+
+Flags:
+	<none>
+
+Special Methods:
+	getElement
+
+Dependencies:
+	MainGeometry
+
+*/
+
+
+const svgNS = 'http://www.w3.org/2000/svg';
+const xlinkNS = 'http://www.w3.org/1999/xlink';
+
+
+export default class ForegroundObjects {
+
+
+	constructor() {
+
+		this._element = document.createElementNS(svgNS, 'g');
+
+		let defaultParams = {
+			foregroundObjects: [],
+		};
+
+		this._params = {};
+		this.setParams(defaultParams);
 	}
 
 
+	/*
+	**	Linking Dependencies
+	*/
 
-	_layoutForegroundObjects() {
+	link(otherObjects) {
+		this._mainGeometry = otherObjects.mainGeometry;
+	}
 
-		for (let i = 0; i < this._foregroundObjects.length; ++i) {
 
-			let obj = this._foregroundObjects[i];
+	/*
+	**	Update Cycle Methods
+	*/
+	
+	update() {
+
+		// Check dependencies.
+
+		if (this._mainGeometry.getHaveLayoutPropsChanged()) {
+			this._needs_transformObjects = true;
+		}
+
+		// Call internal update sub-methods as required.
+
+		if (this._needs_replaceObjects) {
+			this._replaceObjects();
+		}
+
+		if (this._needs_transformObjects) {
+			this._transformObjects();
+		}
+	}
+
+	clearFlags() {
+		// No external flags.
+	}
+
+
+	/*
+	**	Parameter Methods
+	*/
+
+	addParams(params) {
+		params.foregroundObjects = this._copyForegroundObjects(this._params.foregroundObjects);
+	}
+
+	setParams(params) {
+
+		let vp = this.validateParams(params);
+
+		// Set validated params.
+		for (const key in vp) {
+			this._params[key] = vp[key];
+		}
+
+		// Flag update sub-methods according to which parameters have been set.
+
+		if (vp.hasOwnProperty('foregroundObjects')) {
+			this._needs_replaceObjects = true;
+		}
+	}	
+
+	validateParams(params) {
+
+		let vp = {};
+
+		if (params.hasOwnProperty('foregroundObjects')) {
+			vp.foregroundObjects = this._validateForegroundObjects(params.foregroundObjects);
+		}
+
+		return vp;
+	}
+
+
+	/*
+	**	Internal Helpers for Parameter Methods
+	*/
+
+	_validateForegroundObjects(arg) {
+
+		let vp = {};
+
+		if (!Array.isArray(arg)) {
+			console.log(arg);
+			console.log(Array.isArray(arg));
+			console.log(typeof arg);
+			throw new Error('The foregroundObjects parameter must be an array.');
+		}
+
+		let copy = this._copyForegroundObjects(arg);
+
+		// TODO: verify copy
+
+		return copy;
+	}
+
+	_copyForegroundObjects(arg) {
+		let copy = [];
+		// TODO: do manual/limited copy, since arg may be user supplied
+		for (let i = 0; i < arg.length; ++i) {
+			copy[i] = Object.assign({}, arg[i]);
+		}
+		return copy;
+	}
+
+
+	/*
+	**	Special Methods
+	*/
+
+	getElement() {
+		return this._element;
+	}
+
+
+	/*
+	**	Internal Update Methods
+	*/
+
+	_transformObjects() {
+		console.log(' ForegroundObjects._transformObjects');
+
+		let layoutProps = this._mainGeometry.getLayoutProps();
+
+		let xOrigin = layoutProps.contentWidth * layoutProps.margin;
+		let unitWidth = layoutProps.contentWidth*(1 - 2*layoutProps.margin);
+		let yOrigin = layoutProps.horizonY;
+		let unitHeight = layoutProps.contentHeight * layoutProps.horizon;
+
+		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
+
+			let obj = this._params.foregroundObjects[i];
 			
-			let width = obj.width * this._foregroundUnitWidth;
-			obj.image.setAttribute('width', width + 'px');
+			let width = obj.width * unitWidth;
+			obj.image.setAttribute('width', width);
 			
 			let height = width / obj.aspectRatio;
-			obj.image.setAttribute('height', height + 'px');
+			obj.image.setAttribute('height', height);
 
 			let cx = 0;	
 			if (obj.cx !== undefined) {
@@ -87,11 +217,53 @@
 				cy = obj.cy * height;
 			}
 
-			let x = this._foregroundXOrigin - cx + obj.x*this._foregroundUnitWidth;
-			let y = this._foregroundYOrigin - cy + obj.y*this._foregroundUnitHeight;
+			let x = xOrigin - cx + obj.x*unitWidth;
+			let y = yOrigin - cy + obj.y*unitHeight;
 
-			obj.image.setAttribute('x', x + 'px');
-			obj.image.setAttribute('y', y + 'px');
-
+			obj.image.setAttribute('x', x);
+			obj.image.setAttribute('y', y);
 		}	
+
+		this._needs_transformObjects = false;
 	}
+
+	_replaceObjects() {
+		console.log(' ForegroundObjects._replaceObjects');
+
+		// The ForegroundObjects object removes and reattaches the objects every time
+		//	the parameter is set.
+		// TODO: change this
+
+		this._needs_transformObjects = true;
+
+		this._removeAllChildren(this._element);
+
+		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
+
+			let obj = this._params.foregroundObjects[i];
+
+			let image = document.createElementNS(svgNS, 'image');
+			image.setAttributeNS(xlinkNS, 'href', obj.imageSrc);
+			image.setAttribute('preserveAspectRatio', 'xMinYMin');
+			this._element.appendChild(image);
+
+			obj.image = image;
+		}
+
+		this._needs_replaceObjects = false;
+	}
+
+
+	/*
+	** Misc Internal Methods
+	*/
+
+	_removeAllChildren(element) {
+	  while (element.firstChild) {
+	    element.removeChild(element.firstChild);
+	  }
+	}
+
+}
+
+

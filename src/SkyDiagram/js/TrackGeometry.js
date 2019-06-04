@@ -84,7 +84,7 @@ export default class TrackGeometry {
 	*/
 
 	addParams(params) {
-		params.trackPath = this._copyTrackPath(this._trackPath);
+		params.trackPath = this._copyTrackPath(this._params.trackPath);
 	}
 
 	setParams(params) {

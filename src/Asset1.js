@@ -95,7 +95,30 @@ class Asset1 {
 		let diagramSettings = {
 			sunImageSrc: 'graphics/sun.svg',
 			moonImageSrc: 'graphics/moon.svg',
-			groundImageSrc: 'graphics/ground.svg'
+			groundImageSrc: 'graphics/ground.svg',
+			foregroundObjects: [
+				{ imageSrc: 'graphics/tree.svg',
+					x: 0,//0.25,
+					y: 0,//0.5,
+					cx: 0.5,
+					cy: 1.0,
+					width: 0.1,
+					aspectRatio: 150/175},
+				{	imageSrc: 'graphics/house.svg',
+					x: 0.8,
+					y: 0.4,
+					cx: 0.5,
+					cy: 0.95,
+					width: 0.17,
+					aspectRatio: 150/130},
+				{ imageSrc: 'graphics/kids.svg',
+					x: 0.4,
+					y: 0.6,
+					cx: 0.5,
+					cy: 0.95,
+					width: 0.30,
+					aspectRatio: 245/145},
+			],
 		};
 		this._diagram.setParams(diagramSettings);
 

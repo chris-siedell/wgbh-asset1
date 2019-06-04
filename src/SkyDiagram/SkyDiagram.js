@@ -17,7 +17,7 @@ import Sun from './js/Sun.js';
 import Moon from './js/Moon.js';
 import TerrestrialGroup from './js/TerrestrialGroup.js';
 import Ground from './js/Ground.js';
-//import ForegroundObjects from './js/ForegroundObjects.js';
+import ForegroundObjects from './js/ForegroundObjects.js';
 
 /*
 
@@ -93,7 +93,7 @@ export default class SkyDiagram {
 		this._subs.moon								= new Moon();
 		this._subs.terrestrialGroup		= new TerrestrialGroup();
 		this._subs.ground							= new Ground();
-//		this._subs.foregroundObjects	= new ForegroundObjects();
+		this._subs.foregroundObjects	= new ForegroundObjects();
 
 		// The linking step allows the sub-objects to make any necessary
 		//	references to each other.
@@ -122,7 +122,7 @@ export default class SkyDiagram {
 		svg.appendChild(terrestrialGroup);
 
 		terrestrialGroup.appendChild(this._subs.ground.getElement());
-//		terrestrialGroup.appendChild(this._subs.foregroundObjects.getElement());
+		terrestrialGroup.appendChild(this._subs.foregroundObjects.getElement());
 	}
 
 
@@ -168,7 +168,7 @@ export default class SkyDiagram {
 		this._subs.track.update();
 		this._subs.terrestrialGroup.update();
 		this._subs.ground.update();
-//		this._subs.foregroundObjects.update();
+		this._subs.foregroundObjects.update();
 
 		// Clearing flags can be done in any order.
 		for (const key in this._subs) {

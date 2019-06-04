@@ -191,9 +191,6 @@ export default class Sky {
 		// TODO: dusk, dawn
 		// TODO: don't assign attributes if no change
 
-
-		console.log('=== sunPosition: '+sunPosition);
-
 		if (sunPosition <= 0.5) {
 			this._skyBottomStop.setAttribute('stop-color', this._params.dayBottomColor);
 			this._skyTopStop.setAttribute('stop-color', this._params.dayTopColor);
