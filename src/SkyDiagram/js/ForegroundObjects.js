@@ -16,6 +16,10 @@
 		});
 
 
+			this._foregroundXOrigin = this._contentWidth * this._margin;
+			this._foregroundUnitWidth = this._contentWidth*(1 - 2*this._margin);
+			this._foregroundYOrigin = this._horizonY;
+			this._foregroundUnitHeight = this._contentHeight * this._horizon;
 
 	addForegroundObject(fobj) {
 
@@ -60,3 +64,34 @@
 	}
 
 
+
+	_layoutForegroundObjects() {
+
+		for (let i = 0; i < this._foregroundObjects.length; ++i) {
+
+			let obj = this._foregroundObjects[i];
+			
+			let width = obj.width * this._foregroundUnitWidth;
+			obj.image.setAttribute('width', width + 'px');
+			
+			let height = width / obj.aspectRatio;
+			obj.image.setAttribute('height', height + 'px');
+
+			let cx = 0;	
+			if (obj.cx !== undefined) {
+				cx = obj.cx * width;
+			}
+
+			let cy = 0;
+			if (obj.cy !== undefined) {
+				cy = obj.cy * height;
+			}
+
+			let x = this._foregroundXOrigin - cx + obj.x*this._foregroundUnitWidth;
+			let y = this._foregroundYOrigin - cy + obj.y*this._foregroundUnitHeight;
+
+			obj.image.setAttribute('x', x + 'px');
+			obj.image.setAttribute('y', y + 'px');
+
+		}	
+	}

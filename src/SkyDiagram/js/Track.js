@@ -1,15 +1,21 @@
 /*
 Track.js
-2019-06-02
+wgbh-skydiagram
+astro.unl.edu
+2019-06-03
 */
 
 
 /*
 
+The Track object is responsible for drawing the sun-moon track.
+
+See also TrackGeometry.
+
 Parameters:
-	pathColor
-	pathWidth
-	pathCutoutSize
+	trackColor
+	trackWidth
+	trackCutoutSize
 
 Flags:
 	<none>	
@@ -48,23 +54,23 @@ export default class Track {
 		this._maskRect.setAttribute('height', '100%');
 		this._mask.appendChild(this._mask);
 
-		this._moonCutout = document.createElementNS(svgNS, 'ellipse');
+		this._moonCutout = document.createElementNS(svgNS, 'circle');
 		this._moonCutout.setAttribute('fill', 'black');
 		this._mask.appendChild(this._moonCutout);
 
-		this._sunCutout = document.createElementNS(svgNS, 'ellipse');
+		this._sunCutout = document.createElementNS(svgNS, 'circle');
 		this._sunCutout.setAttribute('fill', 'black');
 		this._mask.appendChild(this._sunCutout);
 
 		this._trackPath = document.createElementNS(svgNS, 'path');
-		this._trackPath.setAttribute('mask', 'url(#path-mask)');
+		this._trackPath.setAttribute('mask', 'url(#track-mask)');
 		this._trackPath.setAttribute('fill', 'none');
 		this._element.appendChild(this._trackPath);
 
 		this._params = {
-			pathColor: '#ffffff',
-			pathWidth: 2,
-			pathCutoutSize: 1.2,
+			trackColor: '#ffffff',
+			trackWidth: 2,
+			trackCutoutSize: 1.2,
 		};
 
 		this.setParams(this._params);
@@ -72,19 +78,13 @@ export default class Track {
 
 
 	/*
-	**	Dependencies
+	**	Linking Dependencies
 	*/
 
-	linkTrackGeometry(arg) {
-		this._trackGeometry = arg;
-	}
-	
-	linkSun(arg) {
-		this._sun = arg;
-	}
-
-	linkMoon(arg) {
-		this._moon = arg;
+	link(otherObjects) {
+		this._trackGeometry = otherObjects.trackGeometry;
+		this._sun = otherObjects.sun;
+		this._moon = otherObjects.moon;
 	}
 
 
@@ -100,11 +100,11 @@ export default class Track {
 			this._needs_redrawTrack = true;
 		}
 
-		if (this._sun.getHasSizeChanged() || this._moon.getHasSizeChanged()) {
+		if (this._sun.getHasRadiusChanged() || this._moon.getHasRadiusChanged()) {
 			this._needs_redrawCutouts = true;
 		}
 
-		if (this._sun.getHasMoved() || this._moon.getHasMoved()) {
+		if (this._sun.getHasPointChanged() || this._moon.getHasPointChanged()) {
 			this._needs_moveCutouts = true;
 		}
 
@@ -124,7 +124,7 @@ export default class Track {
 	}
 
 	clearFlags() {
-		//
+		// No flags.
 	}
 
 
@@ -132,10 +132,10 @@ export default class Track {
 	**	Parameter Methods
 	*/
 
-	assignParams(params) {
-		params.pathColor = this._params.pathColor;
-		params.pathWidth = this._params.pathWidth;
-		params.pathCutoutSize = this._params.pathCutoutSize;
+	addParams(params) {
+		params.trackColor = this._params.trackColor;
+		params.trackWidth = this._params.trackWidth;
+		params.trackCutoutSize = this._params.trackCutoutSize;
 	}
 
 	setParams(params) {
@@ -148,7 +148,7 @@ export default class Track {
 			}
 		}
 
-		if (vp.pathColor !== undefined || vp.pathWidth !== undefined) {
+		if (vp.trackColor !== undefined || vp.trackWidth !== undefined) {
 			this._needs_redrawTrack = true;
 		}
 
@@ -161,17 +161,16 @@ export default class Track {
 
 		let vp = {};
 
-		if (params.pathColor !== undefined) {
-			// TODO: validate
-			vp.pathColor = params.pathColor;
+		if (params.trackColor !== undefined) {
+			vp.trackColor = params.trackColor;
 		}
 
-		if (params.pathWidth !== undefined) {
-			vp.pathWidth = this._validatePathWidth(params.pathWidth);
+		if (params.trackWidth !== undefined) {
+			vp.trackWidth = this._validateTrackWidth(params.trackWidth);
 		}
 
-		if (params.cutoutSize !== undefined) {
-			vp.cutoutSize = this._validateNumber(params.cutoutSize);
+		if (params.trackCutoutSize !== undefined) {
+			vp.trackCutoutSize = this._validateNumber(params.trackCutoutSize);
 		}
 
 		return vp;
@@ -182,8 +181,8 @@ export default class Track {
 	**	Internal Helpers for Parameter Methods
 	*/
 
-	_validatePathWidth(arg) {
-		arg = this._validateNumber(arg, 'pathWidth');
+	_validateTrackWidth(arg) {
+		arg = this._validateNumber(arg, 'trackWidth');
 		if (arg < 0.1) {
 			arg = 0.1;
 		} else if (arg > 5) {
@@ -217,34 +216,35 @@ export default class Track {
 	*/
 
 	_redrawTrack() {
-		this._trackPath.setAttribute('stroke', this._params.pathColor);
-		this._trackPath.setAttribute('stroke-width', this._params.pathWidth);
+		console.log(' Track._redrawTrack');
+		this._trackPath.setAttribute('stroke', this._params.trackColor);
+		this._trackPath.setAttribute('stroke-width', this._params.trackWidth);
 		this._trackPath.setAttribute('d', this._trackGeometry.getTrackPathData());
 		this._needs_redrawTrack = false;
 	}
 
 	_redrawCutouts() {
+		console.log(' Track._redrawCutouts');
 
-		let moonCutoutRadius = this._params.cutoutSize * this._moon.getScreenRadius();
-		this._moonCutout.setAttribute('rx', moonCutoutRadius);
-		this._moonCutout.setAttribute('ry', moonCutoutRadius);
+		let moonCutoutRadius = this._params.cutoutSize * this._moon.getRadius();
+		this._moonCutout.setAttribute('r', moonCutoutRadius);
 		
-		let sunCutoutRadius = this._params.cutoutSize * this._sun.getScreenRadius();
-		this._sunCutout.setAttribute('rx', sunCutoutRadius);
-		this._sunCutout.setAttribute('ry', sunCutoutRadius);
+		let sunCutoutRadius = this._params.cutoutSize * this._sun.getRadius();
+		this._sunCutout.setAttribute('r', sunCutoutRadius);
 
 		this._needs_redrawCutouts = false;
 	}
 
 	_moveCutouts() {
+		console.log(' Track._moveCutouts');
 		
-		let moonPt = this._moon.getScreenPoint();
-		this._moonCutout.setAttribute('cx', this._moonPt.x);
-		this._moonCutout.setAttribute('cy', this._moonPt.y);
+		let moonPt = this._moon.getPoint();
+		this._moonCutout.setAttribute('cx', moonPt.x);
+		this._moonCutout.setAttribute('cy', moonPt.y);
 
-		let sunPt = this._sun.getScreenPoint();
-		this._sunCutout.setAttribute('cx', this._sunPt.x);
-		this._sunCutout.setAttribute('cy', this._sunPt.y);
+		let sunPt = this._sun.getPoint();
+		this._sunCutout.setAttribute('cx', sunPt.x);
+		this._sunCutout.setAttribute('cy', sunPt.y);
 
 		this._needs_moveCutouts = false;
 	}

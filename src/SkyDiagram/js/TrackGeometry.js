@@ -1,6 +1,8 @@
 /*
 TrackGeometry.js
-2019-06-02
+wgbh-skydiagram
+astro.unl.edu
+2019-06-03
 */
 
 
@@ -44,8 +46,8 @@ export default class TrackGeometry {
 	**	Linking Dependencies
 	*/
 
-	link(domain) {
-		this._mainGeometry = domain.mainGeometry;
+	link(otherObjects) {
+		this._mainGeometry = otherObjects.mainGeometry;
 	}
 
 
@@ -81,7 +83,7 @@ export default class TrackGeometry {
 	**	Parameter Methods
 	*/
 
-	assignParams(params) {
+	addParams(params) {
 		params.trackPath = this._copyTrackPath(this._trackPath);
 	}
 
@@ -276,6 +278,7 @@ export default class TrackGeometry {
 	*/
 
 	_updateTrack() {
+		console.log(' TrackGeometry._updateTrack');
 
 		//let startTime = performance.now();
 

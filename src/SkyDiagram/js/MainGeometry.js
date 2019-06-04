@@ -1,6 +1,8 @@
 /*
 MainGeometry.js
-2019-06-02
+wgbh-skydiagram
+astro.unl.edu
+2019-06-03
 */
 
 
@@ -66,7 +68,7 @@ export default class MainGeometry {
 	**	Linking Dependencies
 	*/
 
-	link(domain) {
+	link(otherObjects) {
 		// No dependencies.
 	}
 
@@ -106,12 +108,12 @@ export default class MainGeometry {
 	**	Parameter Methods
 	*/
 
-	assignParams(params) {
-		params.width = this._params.width;
-		params.height = this._params.height;
-		params.horizon = this._params.horizon;
-		params.peak = this._params.peak;
-		params.margin = this._params.margin;
+	addParams(params) {
+		params.width		= this._params.width;
+		params.height		= this._params.height;
+		params.horizon	= this._params.horizon;
+		params.peak			= this._params.peak;
+		params.margin		= this._params.margin;
 	}
 
 	setParams(params) {
@@ -209,6 +211,7 @@ export default class MainGeometry {
 	*/
 
 	_updateDimensions() {
+		console.log(' MainGeometry._updateDimensions');
 		
 		this._haveDimensionsChanged = true;
 
@@ -227,6 +230,7 @@ export default class MainGeometry {
 
 
 	_updateLayoutProps() {
+		console.log(' MainGeometry._updateLayoutProps');
 
 		this._haveLayoutPropsChanged = true;
 
