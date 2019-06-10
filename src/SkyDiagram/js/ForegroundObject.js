@@ -46,18 +46,16 @@ In this system the x and y scales are defined by the reference object's width
 
 In this system the width is defined as a fraction of the reference object's width.
 
-To be well-defined, an object must directly or indirectly (through a chain of references) reference
-	another object in a fixed system. If not well-defined the object will not be shown.
+To be well-defined, the refObjectID must match an object defined in a fixed system. If not
+	well-defined the object will not be shown.
 
 
 Parameters:
-	ID									- an identifying string that must be unique amongst all foreground objects (this
-												requirement is enforced in ForegroundObjects); the value remains constant
-												for the life of the object 
 	imageSrc 						- the URL for the image (JPG, PNG, or SVG) for the object
 	system							- one of "horizon" (the default) or "object"
+	refObjectID					- the ID of the object to use for reference; meaningful only if system is "object";
+												if this is an empty string the object will not be shown
 	x, y								- these define the position of the object in the given system (see notes above)
-	refObjectID					- the ID of the object to use for reference; meaningful only if system is "object"
 	offsetX, offsetY		- these define the relative attachment offset of the image as fractions of its width
 												and height; if undefined, the default is the upper-left corner at <0,0>;
 												so <0.5,0.5> would use the object's center as its origin point for positioning
@@ -77,7 +75,7 @@ Flags:
 
 Special Methods:
 	getID()
-	getIsFixedSystem()
+	getUsesFixedSystem()
 	getScreenPointForRelativePoint(pt)
 
 Dependencies:
@@ -89,53 +87,15 @@ Dependencies:
 export default class ForegroundObject {
 
 
-	static copyParams(orig) {
-		// Copies (at depth) the properties specific to the ForegroundObject params object, assuming
-		//	a valid original object.
-		// This method does not validate the params beyond what is necessary to ensure safe copying.
 
-		let copy = {};
-
-		// These params can be copied by value. 'visibility' is handled separately.
-		let paramNames = ['ID', 'imageSrc', 'system', 'x', 'y', 'refObjectID', 'offsetX', 'offsetY', 'width', 'aspectRatio', 'applyNightShading'];
-
-		for (const key in paramNames) {
-			if (orig.hasOwnProperty(key)) {
-				copy[key] = orig[key];
-			}
-		}
-
-		if (orig.hasOwnProperty('visibility' && typeof orig.sunPosition === 'object') {
-			copy.visibility = ForegroundObject.copyVisibilityParam(orig.visibility);
-		}
-	
-		return copy;
-	}
-
-
-	static copyVisibilityParam(orig) {
-		let copy = {};
-		if (orig.hasOwnProperty('sunPosition') && Array.isArray(orig.sunPosition)) {
-			copy.sunPosition = [];
-			for (let i = 0; i < orig.sunPosition.length; ++i) {
-				let origRange = orig.sunPosition[i];
-				copy.sunPosition[i] = {begin: origRange.begin, end: origRange.end};
-			}
-		}
-		return copy;
-	}
 		
 		
-	constructor(parent, id) {
-
-		this.SYSTEM_HORIZON = 'horizon';
-		this.SYSTEM_OBJECT = 'object';
+	constructor(parent, ID) {
 
 		// The parent is the ForegroundObjects instance.
 		this._parent = parent;
 
-		// The ForegroundObjects instance is responsible for ensuring that the ID is valid.
-		this._id = id;
+		this._ID = ID;
 
 		let defaultParams = {
 			imageSrc: '',
@@ -166,32 +126,17 @@ export default class ForegroundObject {
 		params.foregroundObjects = this._copyForegroundObjects(this._params.foregroundObjects);
 	}
 
-	setParams(params) {
+	_setParams(vp) {
+		// vp is assumed to be a validated params object that may be copied by reference.
 
-		let vp = this.validateParams(params);
-
-		// Set validated params.
 		for (const key in vp) {
 			this._params[key] = vp[key];
 		}
 
-		// Flag update sub-methods according to which parameters have been set.
+	}
 
-		if (vp.hasOwnProperty('foregroundObjects')) {
-			this._needs_replaceObjects = true;
-		}
-	}	
+	
 
-	validateParams(params) {
-
-		let vp = {};
-
-		if (params.hasOwnProperty('foregroundObjects')) {
-			vp.foregroundObjects = this._validateForegroundObjects(params.foregroundObjects);
-		}
-
-		return vp;
-	}	
 	/*
 	**	Special Methods
 	*/
@@ -201,10 +146,136 @@ export default class ForegroundObject {
 	}
 
 	getID() {
-		return this._params.id;
+		return this._ID;
 	}
 
 
+
+
+	/*
+	**	[Static] Validation Methods
+	*/
+
+	static validateParams(params) {
+
+		let vp = {};
+
+		if (params.hasOwnProperty('imageSrc')) {
+			vp.imageSrc = ForegroundObject._validateImageSrc(params.imageSrc);
+		}
+			
+		if (params.hasOwnProperty('system')) {
+			vp.system = ForegroundObject._validateSystem(params.system);
+		}
+
+		if (params.hasOwnProperty('refObjectID') {
+			vp.refObjectID = ForegroundObject._validateRefObjectID(params.refObjectID);
+		}
+
+		if (params.hasOwnProperty('x')) {
+			vp.x = ForegroundObject._validateNumber(params.x, 'x');
+		}
+
+		if (params.hasOwnProperty('y')) {
+			vp.y = ForegroundObject._validateNumber(params.y, 'y');
+		}
+
+		if (params.hasOwnProperty('offsetX')) {
+			vp.offsetX = ForegroundObject._validateNumber(params.offsetX, 'offsetX');
+		}
+
+		if (params.hasOwnProperty('offsetY')) {
+			vp.offsetY = ForegroundObject._validateNumber(params.offsetY, 'offsetY');
+		}
+
+		if (params.hasOwnProperty('width')) {
+			vp.width = ForegroundObject._validateNumber(params.width, 'width');
+		}
+
+		if (params.hasOwnProperty('aspectRatio')) {
+			vp.aspectRatio = ForegroundObject._validateNumber(params.aspectRatio, 'aspectRatio');
+		}
+
+		if (params.hasOwnProperty('applyNightShading') {
+			vp.applyNightShading = Boolean(params.applyNightShading);
+		}
+
+		if (params.hasOwnProperty('visibility') {
+			vp.visibility = ForegroundObject._validateVisibility(params.visibility);
+		}
+
+		return vp;
+	}
+
+	static _validateImageSrc(arg) {
+		if (typeof arg !== 'string') {
+			throw new Error('The ForegroundObject\'s imageSrc must be a string.');
+		}
+		return arg;
+	}
+
+	static _validateSystem(arg) {
+		if (arg === 'horizon') {
+			return 'horizon';
+		} else if (arg === 'object') {
+			return 'object';
+		} else {
+			throw new Error('The ForegroundObject\'s system parameter is unrecognized.');
+		}	
+	}
+
+	static _validateRefObjectID(arg) {
+		if (typeof arg !== 'string') {
+			throw new Error('If defined, the ForegroundObject\'s refObjectID must be a string.');
+		}
+		// An empty string is allowed.
+		let copy = arg.trim();
+		return copy;
+	}
+
+	static _validateNumber(arg, paramName) {
+		if (typeof arg !== 'number') {
+			arg = Number(arg);
+		}
+		if (!Number.isFinite(arg)) {
+			throw new Error(paramName + ' must be a valid number.');
+		}
+		return arg;
+	}
+
+	static _validateVisibility(arg) {
+
+		let copy = {};
+
+		if (arg.hasOwnProperty('sunPosition')) {
+
+			if (!Array.isArray(arg.sunPosition)) {
+				throw new Error('If defined, visibility.sunPosition must be an array.');
+			}
+
+			copy.sunPosition = [];
+
+			for (let i = 0; i < arg.sunPosition.length; ++i) {
+
+				let range = arg.sunPosition[i];
+
+				if (typeof range !== 'object') {
+					throw new Error('Each element in the visibility.sunPosition array must be an object.');
+				}
+
+				if (!range.hasOwnProperty('begin') || !range.hasOwnProperty('end')) {
+					throw new Error('Each object in the visibility.sunPosition array must have begin and end properties.');
+				}
+
+				let rangeCopy = {};
+				rangeCopy.begin = ForegroundObject._validateNumber(range.begin, 'Each begin property in the visibility.sunPosition array');
+				rangeCopy.end = ForegroundObject._validateNumber(range.end, 'Each end property in the visibility.sunPosition array');
+				copy.sunPosition[i] = rangeCopy;
+			}
+		}
+
+		return copy;
+	}
 }
 
 

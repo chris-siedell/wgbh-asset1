@@ -8,19 +8,26 @@ astro.unl.edu
 
 /*
 
-The ForegroundObjects instance is responsible for creating and managing the individual ForegroundObject
+The ForegroundObjects object is responsible for creating and managing the individual ForegroundObject
 	instances. It does this with the foregroundObjects array parameter.
 
 Each element in the foregroundObjects array must be an object with an ID property (a unique, non-empty
 	string).
 
 All objects in the foregroundObjects array must be represented every time the parameter is set -- if an object
-	is not represented it will be removed. Represented means that the object exists with its ID property set.
+	is not represented it will be removed. Represented means that an object exists in the foregroundObjects array
+	with its ID property set.
 
 Example:
 	There are three objects, with IDs "A", "B", and "C". Object C is having its x parameter set to 0. The
 	following is the minimum required to successfully make this change:
 		skyDiagram.setParams({ foregroundObjects: [{ID: "A"}, {ID: "B"}, {ID: "C", params: {x: 0}}] }); 
+		skyDiagram.update();
+
+Counter-example:
+	Given the set-up described above, the following would update object C's x parameter *and* remove objects
+	A and B:
+		skyDiagram.setParams({ foregroundObjects: [{ID: "C", params: {x: 0}}] }); 
 		skyDiagram.update();
 
 The order of the objects in the array determines their stacking order in the layout. Items are stacked from
@@ -29,7 +36,7 @@ The order of the objects in the array determines their stacking order in the lay
 
 Example:
 	Three objects are in the order (from back to front) of A, B, and then C. The positions of B and C are to
-	swapped. The following call will make that change:
+	be swapped. The following call will make that change:
 		skyDiagram.setParams({ foregroundObjects: [{ID: "A"}, {ID: "C"}, {ID: "B"}] });
 		skyDiagram.update();
 
@@ -37,15 +44,25 @@ Example:
 Parameters:
 	foregroundObjects		- this must be an array of objects with the following properties:
 													ID 			- always required,
-													params	- an optional object, which if defined will provide the
-																		parameters for the assigned ForegroundObject instance
-												see notes above for more details
+													params	- an optional object; if defined it will provide the
+																		parameters for the specific ForegroundObject instance
+
+Flags:
+	<none>
 
 Special Methods:
-	getObjectForID(id)
+	getElement()				- returns the SVG group element containing all the foreground objects
+	getObjectForID(ID)	- will return a ForegroundObject instance or undefined
 
+Dependencies:
+	MainGeometry
+	Sun
 
 */
+
+
+const svgNS = 'http://www.w3.org/2000/svg';
+
 
 export default class ForegroundObjects {
 
@@ -54,51 +71,193 @@ export default class ForegroundObjects {
 
 		this._element = document.createElementNS(svgNS, 'g');
 
-		let defaultParams = {
-			foregroundObjects: [],
-		};
+		// The ForegroundObjects class does not use the _params convention
+		//	since it has just one parameter (foregroundObjects). This parameter
+		//	has a complicated management mechanism since it involves distinct
+		//	ForegroundObject instances.
 
+		// _objects effectively backs the foregroundObjects parameter. It contains
+		//	ForegroundObject instances.
 		this._objects = [];
-		this._newObjects = [];
-
-		this._params = {};
-		this.setParams(defaultParams);
+		this._needs_updateElements = false;
 	}
 
 
+	/*
+	**	Linking Dependencies
+	*/
 
-	getObjectForID(id) {
+	link(otherObjects) {
+		this._mainGeometry = otherObjects.mainGeometry;
+		this._sun = otherObjects.sun;
+	}
+
+
+	/*
+	**
+	*/
+
+	update() {
+
+		// update is called on each ForegroundObject.
+
+		// Update the fixed system objects first.
+		let relObjs = [];
 		for (let i = 0; i < this._objects.length; ++i) {
-			if (this._objects[i].getID() === id) {
+			let obj = this._objects[i];
+			if (obj.getUsesFixedSystem()) {
+				obj.update();
+			} else {
+				relObjs.push(obj);
+			}
+		}
+
+		// Update the relative system objects.
+		for (let i = 0; i < relObjs.length; ++i) {
+			relObjs[i].update();
+		}
+
+		if (this._needs_updateElements) {
+			this._updateElements();
+		}
+	}
+
+	clearFlags() {
+		// No flags.
+	}
+
+
+	/*
+	**	Special Methods
+	*/
+
+	getElement() {
+		return this._element;
+	}
+
+	getObjectForID(ID) {
+		for (let i = 0; i < this._objects.length; ++i) {
+			if (this._objects[i].getID() === ID) {
 				return this._objects[i];
 			}
 		}
 		return undefined;
 	}	
 
-	setParams(params) {
 
-		let vp = this.validateParams(params);
+	/*
+	**	Parameter Methods
+	*/
 
-
+	addParams(params) {
+		let fobjs = [];
+		for (let i = 0; i < this._objects.length; ++i) {
+			fobjs[i] = {
+				ID: this._objects[i].getID(),
+				params: this._objects[i].getParams(),
+			};
+		}
+		params.foregroundObjects = fobjs;
 	}
 
-	validateParams(params) {
+	setParams(params) {
+
+		let vp = ForegroundObjects.validateParams(params);
+
+		this._setParams(vp);
+	}
+
+	_setParams(vp) {
+
+		if (vp.hasOwnProperty('foregroundObjects')) {
+
+			// Create a new objects list, re-using existing ForegroundObject
+			//	instances if possible.
+			let newObjects = [];
+			for (let i = 0; i < vp.foregroundObjects.length; ++i) {
+				
+				// Reminder: fobj will have an ID property, but may or may not
+				//	have a params property. 				let fobj = vp.foregroundObjects[i];
+
+				let obj = this.getObjectForID(fobj.ID);
+				if (obj === undefined) {
+					obj = new ForegroundObject(this, fobj.ID);
+				}
+				newObjects[i] = obj;
+
+				// If params exists, it has already been validated.
+				if (fobj.hasOwnProperty('params')) {
+					obj._setParams(fobj.params);
+				}
+			}
+
+			// Has the list changed? That is, have objects have been added, removed,
+			//	or their relative positions changed? If so, the elements will need
+			//	to be updated.
+			if (newObjects.length !== this._objects.length) {
+				this._needs_updateElements = true;
+			} else {
+				for (let i = 0; i < newObjects.length; ++i) {
+					if (newObjects[i].ID !== this._objects[i].getID()) {
+						this._needs_updateElements = true;
+						break;
+					}
+				}
+			}
+
+			this._objects = newObjects;
+		}
+	}
+
+	
+
+
+
+	/*
+	**	Internal Update Methods
+	*/
+
+	_updateElements() {
+		// This method updates the object's SVG elements. This means removing the
+		//	elements that are no longer in the list, adding new elements, and
+		//	re-ordering elements as necessary.
+		// This is done simply by removing all the elements from the group and then
+		//	re-attaching them.
+
+		while (this._element.firstChild) {
+			this._element.removeChild(this._element.firstChild);
+		}
+
+		for (let i = 0; i < this._objects.length; ++i) {
+			this._element.appendChild(this._objects[i].getElement());
+		}
+
+		this._needs_updateElements = false;
+	}
+
+
+	/*
+	**	[Static] Validation Methods
+	*/
+
+	static validateParams(params) {
 
 		let vp = {};
 
 		if (params.hasOwnProperty('foregroundObjects')) {
-			vp.foregroundObjects = this._validateForegroundObjects(params.foregroundObjects);
+			vp.foregroundObjects = ForegroundObjects._validateForegroundObjects(params.foregroundObjects);
 		}
 
 		return vp;
 	}
 
-	_validateForegroundObjects(arg) {
+	static _validateForegroundObjects(arg) {
 		// The foregroundObjects parameter is valid if:
 		//	- it is an array,
 		//	- each element in the array is an object, and
-		//	- each object in the array has a valid ID parameter.
+		//	- each object in the array has a valid ID property,
+		//	- if an object in the array has a params property, it passes validation using
+		//		ForegroundObject.validateParams.
 		// A valid ID parameter:
 		//	- is a string,
 		//	- is non-empty if trimmed, and
@@ -114,15 +273,17 @@ export default class ForegroundObjects {
 
 		for (let i = 0; i < arg.length; ++i) {
 
-			if (typeof arg[i] !== 'object') {
+			let obj = arg[i];
+
+			if (typeof obj !== 'object') {
 				throw new Error('All elements in the foregroundObjects array must be objects.');
 			}
 
-			if (typeof arg[i].ID !== 'string') {
+			if (typeof obj.ID !== 'string') {
 				throw new Error('All object IDs in the foregroundObjects array must be strings.');
 			}
 
-			let ID = arg[i].ID.trim();
+			let ID = obj.ID.trim();
 
 			if (ID === '') {
 				throw new Error('All object IDs in the foregroundObjects array must be non-empty.');
@@ -135,45 +296,15 @@ export default class ForegroundObjects {
 			IDs.push(ID);
 
 			copy[i] = {ID: ID};
+
+			if (obj.hasOwnProperty('params')) {
+				copy[i].params = ForegroundObject.validateParams(obj.params);
+			}
 		}
 
 		return copy;
 	}
 
-
-	_updateObjectsList() {
-
-		// This method needs to be called whenever an object has been added, removed, or
-		//	has changed order.
-
-		let newObjects = [];
-
-		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
-			let params = this._params.foregroundObjects[i];
-
-			let object = params.getObjectForID(params.ID);
-			if (object === undefined) {
-				object = new ForegroundObject(this, params.ID);
-			}
-
-			newObjects[i] = object;
-		}
-
-
-		// Remove all the objects and re-attach them in the new order.
-
-		while (this._element.firstChild) {
-			this._element.removeChild(this._element.firstChild);
-		}
-	
-		for (let i = 0; i < this._objects.length; ++i) {
-			this._element.appendChild(this._objects[i].getElement());
-		}
-
-		this._needs_updateObjectsList = false;
-	}
-
-
-
+}
 
 
