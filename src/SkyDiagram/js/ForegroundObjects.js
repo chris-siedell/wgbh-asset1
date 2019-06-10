@@ -2,57 +2,50 @@
 ForegroundObjects.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-04
+2019-06-09
 */
+
 
 /*
 
-// TODO
+The ForegroundObjects instance is responsible for creating and managing the individual ForegroundObject
+	instances. It does this with the foregroundObjects array parameter.
 
-		// fobj must be an object with the following parameters:
-		//	- url: the object's image URL,
-		//	- x, y: the relative position of the object's origin,
-		//	- width: the relative width of the object,
-		//	- aspectRatio: defined as relativeWidth/relativeHeight, and
-		//	- cx, cy (optional): the offset of the object's center, as fractions of its width
-		//		and height; if undefined, the default is the upper-left corner at <0,0>.
+Each element in the foregroundObjects array must be an object with an ID property (a unique, non-empty
+	string).
 
-		// The position is defined such that:
-		//  x = 0.0 corresponds to the left horizon point (the horizon and path intersection),
-		//	x = 1.0 corresponds to the right horizon point,
-		//	y = 0.0 corresponds to the horizon level, and
-		//	y = 1.0 corresponds to the bottom edge of the diagram.
-		// So the position is defined in a left-hand system.
-		// If the horizon parameter is 0 all y-values are essentially ignored and the foreground
-		//	objects will be placed at the bottom of the diagram.	
+All objects in the foregroundObjects array must be represented every time the parameter is set -- if an object
+	is not represented it will be removed. Represented means that the object exists with its ID property set.
 
-		// The width is defined as a fraction of the distance between the left horizon point
-		//  and the right horizon point. E.g. if there are 400px between the two points and
-		//	width is set to the 0.1, the foreground object will be 40px wide.
-		// The height of the object is scaled automatically to preserve the aspect ratio.
+Example:
+	There are three objects, with IDs "A", "B", and "C". Object C is having its x parameter set to 0. The
+	following is the minimum required to successfully make this change:
+		skyDiagram.setParams({ foregroundObjects: [{ID: "A"}, {ID: "B"}, {ID: "C", params: {x: 0}}] }); 
+		skyDiagram.update();
 
+The order of the objects in the array determines their stacking order in the layout. Items are stacked from
+	back to front. The order may be changed by simply by resubmitting the foregroundObjects array with the
+	represented objects in the new order.
 
+Example:
+	Three objects are in the order (from back to front) of A, B, and then C. The positions of B and C are to
+	swapped. The following call will make that change:
+		skyDiagram.setParams({ foregroundObjects: [{ID: "A"}, {ID: "C"}, {ID: "B"}] });
+		skyDiagram.update();
 
 
 Parameters:
-	foregroundObjects
-
-Flags:
-	<none>
+	foregroundObjects		- this must be an array of objects with the following properties:
+													ID 			- always required,
+													params	- an optional object, which if defined will provide the
+																		parameters for the assigned ForegroundObject instance
+												see notes above for more details
 
 Special Methods:
-	getElement
+	getObjectForID(id)
 
-Dependencies:
-	MainGeometry
-	Sun
 
 */
-
-
-const svgNS = 'http://www.w3.org/2000/svg';
-const xlinkNS = 'http://www.w3.org/1999/xlink';
-
 
 export default class ForegroundObjects {
 
@@ -65,80 +58,30 @@ export default class ForegroundObjects {
 			foregroundObjects: [],
 		};
 
+		this._objects = [];
+		this._newObjects = [];
+
 		this._params = {};
 		this.setParams(defaultParams);
 	}
 
 
-	/*
-	**	Linking Dependencies
-	*/
 
-	link(otherObjects) {
-		this._mainGeometry = otherObjects.mainGeometry;
-		this._sun = otherObjects.sun;
-	}
-
-
-	/*
-	**	Update Cycle Methods
-	*/
-	
-	update() {
-
-		// Check dependencies.
-
-		if (this._mainGeometry.getHaveLayoutPropsChanged()) {
-			this._needs_transformObjects = true;
+	getObjectForID(id) {
+		for (let i = 0; i < this._objects.length; ++i) {
+			if (this._objects[i].getID() === id) {
+				return this._objects[i];
+			}
 		}
-
-		if (this._sun.getHasPositionChanged()) {
-			this._needs_toggleVisibility = true;
-		}
-
-		// Call internal update sub-methods as required.
-
-		if (this._needs_replaceObjects) {
-			this._replaceObjects();
-		}
-
-		if (this._needs_transformObjects) {
-			this._transformObjects();
-		}
-
-		if (this._needs_toggleVisibility) {
-			this._toggleVisibility();
-		}
-	}
-
-	clearFlags() {
-		// No external flags.
-	}
-
-
-	/*
-	**	Parameter Methods
-	*/
-
-	addParams(params) {
-		params.foregroundObjects = this._copyForegroundObjects(this._params.foregroundObjects);
-	}
+		return undefined;
+	}	
 
 	setParams(params) {
 
 		let vp = this.validateParams(params);
 
-		// Set validated params.
-		for (const key in vp) {
-			this._params[key] = vp[key];
-		}
 
-		// Flag update sub-methods according to which parameters have been set.
-
-		if (vp.hasOwnProperty('foregroundObjects')) {
-			this._needs_replaceObjects = true;
-		}
-	}	
+	}
 
 	validateParams(params) {
 
@@ -151,188 +94,86 @@ export default class ForegroundObjects {
 		return vp;
 	}
 
-
-	/*
-	**	Internal Helpers for Parameter Methods
-	*/
-
 	_validateForegroundObjects(arg) {
+		// The foregroundObjects parameter is valid if:
+		//	- it is an array,
+		//	- each element in the array is an object, and
+		//	- each object in the array has a valid ID parameter.
+		// A valid ID parameter:
+		//	- is a string,
+		//	- is non-empty if trimmed, and
+		//	- is unique if trimmed.
 
-		let vp = {};
+		let copy = [];
 
 		if (!Array.isArray(arg)) {
 			throw new Error('The foregroundObjects parameter must be an array.');
 		}
 
-		let copy = this._copyForegroundObjects(arg);
+		let IDs = [];
 
-		// TODO: verify copy
-
-		return copy;
-	}
-
-	_copyForegroundObjects(arg) {
-		let copy = [];
-		// TODO: do manual/limited copy, since arg may be user supplied
-		// TODO: also, copy at depth
 		for (let i = 0; i < arg.length; ++i) {
-			copy[i] = Object.assign({}, arg[i]);
+
+			if (typeof arg[i] !== 'object') {
+				throw new Error('All elements in the foregroundObjects array must be objects.');
+			}
+
+			if (typeof arg[i].ID !== 'string') {
+				throw new Error('All object IDs in the foregroundObjects array must be strings.');
+			}
+
+			let ID = arg[i].ID.trim();
+
+			if (ID === '') {
+				throw new Error('All object IDs in the foregroundObjects array must be non-empty.');
+			}
+
+			if (IDs.indexof(ID) !== -1) {
+				throw new Error('All object IDs in the foregroundObjects array must be unique.');
+			}
+
+			IDs.push(ID);
+
+			copy[i] = {ID: ID};
 		}
+
 		return copy;
 	}
 
 
-	/*
-	**	Special Methods
-	*/
+	_updateObjectsList() {
 
-	getElement() {
-		return this._element;
-	}
+		// This method needs to be called whenever an object has been added, removed, or
+		//	has changed order.
 
-
-	/*
-	**	Internal Update Methods
-	*/
-
-	_transformObjects() {
-		//console.log(' ForegroundObjects._transformObjects');
-
-		let layoutProps = this._mainGeometry.getLayoutProps();
-
-		let xOrigin = layoutProps.contentWidth * layoutProps.margin;
-		let unitWidth = layoutProps.contentWidth*(1 - 2*layoutProps.margin);
-		let yOrigin = layoutProps.horizonY;
-		let unitHeight = layoutProps.contentHeight * layoutProps.horizon;
+		let newObjects = [];
 
 		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
+			let params = this._params.foregroundObjects[i];
 
-			let obj = this._params.foregroundObjects[i];
-			
-			let width = obj.width * unitWidth;
-			obj.image.setAttribute('width', width);
-			
-			let height = width / obj.aspectRatio;
-			obj.image.setAttribute('height', height);
-
-			let cx = 0;	
-			if (obj.cx !== undefined) {
-				cx = obj.cx * width;
+			let object = params.getObjectForID(params.ID);
+			if (object === undefined) {
+				object = new ForegroundObject(this, params.ID);
 			}
 
-			let cy = 0;
-			if (obj.cy !== undefined) {
-				cy = obj.cy * height;
-			}
-
-			let x = xOrigin - cx + obj.x*unitWidth;
-			let y = yOrigin - cy + obj.y*unitHeight;
-
-			obj.image.setAttribute('x', x);
-			obj.image.setAttribute('y', y);
-		}	
-
-		this._needs_transformObjects = false;
-	}
-
-	_toggleVisibility() {
-		//console.log(' ForegroundObjects._toggleVisibility');
-	
-		let sunPosition = this._sun.getPosition();
-
-		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
-
-			let obj = this._params.foregroundObjects[i];
-
-			// The optional visibility parameter allows restricting when the foreground
-			//	object is shown. If it is not defined then the object is always visible.
-			if (obj.visibility === undefined) {
-				continue;
-			}
-
-			if (obj.visibility.sunPosition !== undefined) {
-				// The sunPosition array allows restricting the visibility of the object to
-				//	specific intervals defined by the sun's position (i.e. time). These intervals
-				//	are defined by objects with begin and end properties, which should be
-				//	sun positions in the interval [0, 1).
-
-				let intervals = obj.visibility.sunPosition;
-	
-				let isVisible = false;
-	
-				for (let j = 0; j < intervals.length; ++j) {
-
-					let interval = intervals[j];
-
-					if (interval.begin < interval.end) {
-						// No wraparound.
-						if (sunPosition >= interval.begin && sunPosition <= interval.end) {
-							isVisible = true;
-							break;
-						}
-					} else {
-						// Wraparound.
-						if (sunPosition >= interval.begin || sunPosition <= interval.end) {
-							isVisible = true;
-							break;
-						}
-					}
-				}
-
-				// Assign attribute only if there's a change.
-				if (obj.isVisible !== isVisible) {
-					if (isVisible) {
-						obj.image.setAttribute('display', 'inline');
-					} else {
-						obj.image.setAttribute('display', 'none');
-					}
-					obj.isVisible = isVisible;
-				}
-			}
+			newObjects[i] = object;
 		}
 
-		this._needs_toggleVisibility = false;
-	}
 
-	_replaceObjects() {
-		//console.log(' ForegroundObjects._replaceObjects');
+		// Remove all the objects and re-attach them in the new order.
 
-		// The ForegroundObjects object removes and reattaches the objects every time
-		//	the parameter is set.
-		// TODO: change this
-
-		this._needs_transformObjects = true;
-		this._needs_toggleVisibility = true;
-
-		this._removeAllChildren(this._element);
-
-		for (let i = 0; i < this._params.foregroundObjects.length; ++i) {
-
-			let obj = this._params.foregroundObjects[i];
-
-			let image = document.createElementNS(svgNS, 'image');
-			image.setAttributeNS(xlinkNS, 'href', obj.imageSrc);
-			image.setAttribute('preserveAspectRatio', 'xMinYMin');
-			this._element.appendChild(image);
-
-			obj.image = image;
-			obj.isVisible = true;
+		while (this._element.firstChild) {
+			this._element.removeChild(this._element.firstChild);
+		}
+	
+		for (let i = 0; i < this._objects.length; ++i) {
+			this._element.appendChild(this._objects[i].getElement());
 		}
 
-		this._needs_replaceObjects = false;
+		this._needs_updateObjectsList = false;
 	}
 
 
-	/*
-	** Misc Internal Methods
-	*/
 
-	_removeAllChildren(element) {
-	  while (element.firstChild) {
-	    element.removeChild(element.firstChild);
-	  }
-	}
-
-}
 
 

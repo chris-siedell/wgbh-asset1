@@ -2,7 +2,7 @@
 Ground.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-03
+2019-06-09
 */
 
 
@@ -164,10 +164,11 @@ export default class Ground {
 			// Attach an image.
 
 			let newGround = document.createElementNS(svgNS, 'image');
-			newGround.setAttributeNS(xlinkNS, 'href', this._params.groundImageSrc);
 			newGround.setAttribute('preserveAspectRatio', 'none');
 			newGround.setAttribute('x', 0);
 			newGround.setAttribute('width', '100%');
+			newGround.setAttribute('filter', 'url(#night-shading)');
+			newGround.setAttributeNS(xlinkNS, 'href', this._params.groundImageSrc);
 
 			if (this._ground !== undefined) {
 				this._element.replaceChild(newGround, this._ground);
@@ -187,7 +188,6 @@ export default class Ground {
 		}
 		
 		this._needs_replaceGroundImage = false;
-
 	}
 
 	_adjustGroundImage() {
