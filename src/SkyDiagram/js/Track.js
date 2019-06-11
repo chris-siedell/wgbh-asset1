@@ -2,7 +2,7 @@
 Track.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-03
+2019-06-10
 */
 
 
@@ -13,6 +13,7 @@ The Track object is responsible for drawing the sun-moon track.
 See also TrackGeometry.
 
 Parameters:
+	showTrack
 	trackColor
 	trackWidth
 	trackCutoutSize
@@ -44,7 +45,6 @@ export default class Track {
 
 		this._mask = document.createElementNS(svgNS, 'mask');
 		this._mask.setAttribute('id', 'track-mask');
-		this._element.appendChild(this._mask);	
 		
 		this._maskRect = document.createElementNS(svgNS, 'rect');
 		this._maskRect.setAttribute('fill', 'white');
@@ -65,9 +65,13 @@ export default class Track {
 		this._trackPath = document.createElementNS(svgNS, 'path');
 		this._trackPath.setAttribute('mask', 'url(#track-mask)');
 		this._trackPath.setAttribute('fill', 'none');
-		this._element.appendChild(this._trackPath);
+
+		// The _mask and _trackPath elements are added or removed from
+		//	_element depending on the value of the showTrack parameter.
+		this._areTrackElementsAttached = false;
 
 		this._params = {
+			showTrack: false,
 			trackColor: '#ffffff',
 			trackWidth: 2,
 			trackCutoutSize: 1.2,
@@ -94,32 +98,45 @@ export default class Track {
 	
 	update() {
 
-		// Check dependencies.
+		if (this._params.showTrack) {
+	
+			// Check dependencies.
+	
+			if (this._trackGeometry.getHasTrackChanged()) {
+				this._needs_redrawTrack = true;
+			}
+	
+			if (this._sun.getHasRadiusChanged() || this._moon.getHasRadiusChanged()) {
+				this._needs_redrawCutouts = true;
+			}
+	
+			if (this._sun.getHasPointChanged() || this._moon.getHasPointChanged()) {
+				this._needs_moveCutouts = true;
+			}
+	
+			// Call internal update sub-methods as required.
 
-		if (this._trackGeometry.getHasTrackChanged()) {
-			this._needs_redrawTrack = true;
-		}
+			if (this._needs_updateShowTrack) {
+				this._updateShowTrack();
+			}
+	
+			if (this._needs_redrawTrack) {
+				this._redrawTrack();
+			}
+	
+			if (this._needs_redrawCutouts) {
+				this._redrawCutouts();
+			}
+	
+			if (this._needs_moveCutouts) {
+				this._moveCutouts();
+			}
+	
+		} else {
 
-		if (this._sun.getHasRadiusChanged() || this._moon.getHasRadiusChanged()) {
-			this._needs_redrawCutouts = true;
-		}
-
-		if (this._sun.getHasPointChanged() || this._moon.getHasPointChanged()) {
-			this._needs_moveCutouts = true;
-		}
-
-		// Call internal update sub-methods as required.
-
-		if (this._needs_redrawTrack) {
-			this._redrawTrack();
-		}
-
-		if (this._needs_redrawCutouts) {
-			this._redrawCutouts();
-		}
-
-		if (this._needs_moveCutouts) {
-			this._moveCutouts();
+			if (this._needs_updateShowTrack) {
+				this._updateShowTrack();
+			}
 		}
 	}
 
@@ -133,6 +150,7 @@ export default class Track {
 	*/
 
 	addParams(params) {
+		params.showTrack = this._params.showTrack;
 		params.trackColor = this._params.trackColor;
 		params.trackWidth = this._params.trackWidth;
 		params.trackCutoutSize = this._params.trackCutoutSize;
@@ -148,6 +166,10 @@ export default class Track {
 			}
 		}
 
+		if (vp.hasOwnProperty('showTrack')) {
+			this._needs_updateShowTrack = true;
+		}
+
 		if (vp.trackColor !== undefined || vp.trackWidth !== undefined) {
 			this._needs_redrawTrack = true;
 		}
@@ -160,6 +182,10 @@ export default class Track {
 	validateParams(params) {
 
 		let vp = {};
+
+		if (params.hasOwnProperty('showTrack')) {
+			vp.showTrack = Boolean(params.showTrack);
+		}
 
 		if (params.trackColor !== undefined) {
 			vp.trackColor = params.trackColor;
@@ -214,6 +240,36 @@ export default class Track {
 	/*
 	**	Internal Update Methods
 	*/
+
+	_updateShowTrack() {
+
+		if (this._params.showTrack) {
+
+			this._needs_redrawTrack = true;
+			this._needs_redrawCutouts = true;
+			this._needs_moveCutouts = true;
+
+			if (!this._areTrackElementsAttached) {
+				this._element.appendChild(this._mask);	
+				this._element.appendChild(this._trackPath);
+				this._areTrackElementsAttached = true;
+			}
+
+		} else {
+
+			this._needs_redrawTrack = false;
+			this._needs_redrawCutouts = false;
+			this._needs_moveCutouts = false;
+
+			if (this._areTrackElementsAttached) {
+				this._element.removeChild(this._mask);	
+				this._element.removeChild(this._trackPath);
+				this._areTrackElementsAttached = false;
+			}
+		}
+
+		this._needs_updateShowTrack = false;
+	}
 
 	_redrawTrack() {
 		//console.log(' Track._redrawTrack');

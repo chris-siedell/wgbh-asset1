@@ -92,7 +92,7 @@ class Asset1 {
 
 		let diagramSettings = {
 			sunImageSrc: 'graphics/sun.svg',
-			moonImageSrc: 'graphics/Boston1_v6_moon-realistic.png',//moon.svg',
+			moonImageSrc: 'graphics/Boston1_v7_moon-realisticcartoon.svg',//moon.svg',
 			groundImageSrc: 'graphics/ground.svg',
 			foregroundObjects: [
 				{	ID: 'tree',
@@ -115,22 +115,6 @@ class Asset1 {
 						offsetY: 0.95,
 						width: 0.17,
 						aspectRatio: 150/130,
-					},
-				},
-				{ ID: 'kids',
-					params: {
-						imageSrc: 'graphics/kids.svg',
-						x: 0.4,
-						y: 0.6,
-						offsetX: 0.5,
-						offsetY: 0.95,
-						width: 0.30,
-						aspectRatio: 245/145,
-						visibility: {
-							sunPosition: [
-								{begin: ((9 - 6)/24), end: ((18 - 6)/24)},
-							],
-						},
 					},
 				},
 			],
