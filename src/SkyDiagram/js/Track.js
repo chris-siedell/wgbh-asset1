@@ -71,7 +71,7 @@ export default class Track {
 		this._areTrackElementsAttached = false;
 
 		this._params = {
-			showTrack: false,
+			showTrack: true,
 			trackColor: '#ffffff',
 			trackWidth: 2,
 			trackCutoutSize: 1.2,

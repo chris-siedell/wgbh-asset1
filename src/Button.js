@@ -1,3 +1,9 @@
+/*
+Button.js
+wgbh-asset1
+astro.unl.edu
+2019-06-10
+*/
 
 
 export default class Button {
@@ -12,6 +18,8 @@ export default class Button {
 
 
 	setParams(params) {
+
+		// TODO: this is written to work once -- no updates!
 
 		if (params.width !== undefined) {
 			this._button.style.width = params.width + 'px';
@@ -39,7 +47,11 @@ export default class Button {
 				this._button.appendChild(text);
 
 			} else {
-				this._button.textContent = params.text;
+
+				let text = document.createElement('div');
+				text.textContent = params.text;
+				this._button.appendChild(text);
+
 			}
 		}
 

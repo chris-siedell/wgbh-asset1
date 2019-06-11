@@ -15,7 +15,7 @@ import InfoPanel from './InfoPanel.js';
 
 
 
-var versionNum = '0.0';
+var versionNum = '0.1.0';
 var versionDateStr = '2019-06-10';
 
 
@@ -31,6 +31,7 @@ class Asset1 {
 		this.incrementHour = this.incrementHour.bind(this);
 		this.play = this.play.bind(this);
 		this.pause = this.pause.bind(this);
+		this.goToDay1 = this.goToDay1.bind(this);
 
 		
 		// The official timekeeping property of the simulation is _time. This variable is assigned
@@ -71,11 +72,11 @@ class Asset1 {
 			console.error('TIME_CYCLE is greater than MAX_SAFE_INTEGER.');
 		}
 
-		console.log("ATU_PER_HOUR: "+this._ATU_PER_HOUR);
-		console.log("CALENDAR_PERIOD: "+this._CALENDAR_PERIOD);
-		console.log("SYNODIC_PERIOD: "+this._SYNODIC_PERIOD);
-		console.log("TIME_CYCLE: "+this._TIME_CYCLE);
-		console.log("MAX_SAFE_INTEGER: "+Number.MAX_SAFE_INTEGER);
+//		console.log("ATU_PER_HOUR: "+this._ATU_PER_HOUR);
+//		console.log("CALENDAR_PERIOD: "+this._CALENDAR_PERIOD);
+//		console.log("SYNODIC_PERIOD: "+this._SYNODIC_PERIOD);
+//		console.log("TIME_CYCLE: "+this._TIME_CYCLE);
+//		console.log("MAX_SAFE_INTEGER: "+Number.MAX_SAFE_INTEGER);
 	
 		
 		this._root = document.createElement('div');
@@ -91,6 +92,8 @@ class Asset1 {
 		this._root.appendChild(this._controlPanel.getElement());
 
 		let diagramSettings = {
+			showTrack: false,
+			darkestShadingLevel: 0.3,
 			sunImageSrc: 'graphics/sun.svg',
 			moonImageSrc: 'graphics/Boston1_v7_moon-realisticcartoon.svg',//moon.svg',
 			groundImageSrc: 'graphics/ground.svg',
@@ -117,6 +120,49 @@ class Asset1 {
 						aspectRatio: 150/130,
 					},
 				},
+				{	ID: 'lamp-pane-off',
+					params: {
+						imageSrc: 'graphics/lamp-pane-off.svg',
+						system: 'object',
+						refObjectID: 'house',
+						x: 0.5,
+						y: 0.2,
+						offsetX: 0.5,
+						offsetY: 0.0,
+						width: 0.4,
+						aspectRatio: 2,
+					},
+				}, 
+				{	ID: 'lamp-pane-on',
+					params: {
+						imageSrc: 'graphics/lamp-pane-on.svg',
+						system: 'object',
+						refObjectID: 'house',
+						x: 0.5,
+						y: 0.2,
+						offsetX: 0.5,
+						offsetY: 0.0,
+						width: 0.4,
+						aspectRatio: 2,
+						applyNightShading: false,
+						visibility: {
+							sunPosition: [{begin: (18 - 6)/24, end: (6 - 6)/24}],
+						}
+					},
+				}, 
+				{	ID: 'lamp-frame',
+					params: {
+						imageSrc: 'graphics/lamp-frame.svg',
+						system: 'object',
+						refObjectID: 'house',
+						x: 0.5,
+						y: 0.2,
+						offsetX: 0.5,
+						offsetY: 0.0,
+						width: 0.4,
+						aspectRatio: 2,
+					},
+				}, 
 			],
 		};
 		this._diagram.setParams(diagramSettings);
@@ -141,7 +187,7 @@ class Asset1 {
 		this._height = bb.height;
 
 
-		this.setSecondsPerCalendarPeriod(90);
+		this.setSecondsPerCalendarPeriod(180);
 
 		this._setTime(134.1 * this._ATU_PER_HOUR);
 
@@ -191,6 +237,8 @@ class Asset1 {
 			return 'New Moon';
 		}
 	}
+
+	
 
 
 	_setTime(arg) {
@@ -296,6 +344,10 @@ class Asset1 {
 		this.setIsPlaying(false);
 	}
 
+	goToDay1() {
+		this._setTime(12 * this._ATU_PER_HOUR);
+		this.update();
+	}
 
 	getIsPlaying() {
 		return this._isPlaying;

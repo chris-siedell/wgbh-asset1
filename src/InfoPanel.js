@@ -1,4 +1,9 @@
-
+/*
+InfoPanel.js
+wgbh-asset1
+astro.unl.edu
+2019-06-10
+*/
 
 
 export default class InfoPanel {
@@ -16,14 +21,14 @@ export default class InfoPanel {
 		this._element.appendChild(this._dayDiv);
 
 
-		this._timeOfDayDiv = document.createElement('div');
-		this._timeOfDayDiv.textContent = '.';
-		this._element.appendChild(this._timeOfDayDiv);
+//		this._timeOfDayDiv = document.createElement('div');
+//		this._timeOfDayDiv.textContent = '.';
+//		this._element.appendChild(this._timeOfDayDiv);
 
 
-		this._phaseNameDiv = document.createElement('div');
-		this._phaseNameDiv.textContent = '.';
-		this._element.appendChild(this._phaseNameDiv);
+//		this._phaseNameDiv = document.createElement('div');
+//		this._phaseNameDiv.textContent = '.';
+//		this._element.appendChild(this._phaseNameDiv);
 
 	}
 
@@ -32,12 +37,12 @@ export default class InfoPanel {
 		if (info.day !== undefined) {
 			this._dayDiv.textContent = info.day;
 		}
-		if (info.timeOfDay !== undefined) {
-			this._timeOfDayDiv.textContent = info.timeOfDay;
-		}
-		if (info.phaseName !== undefined) {
-			this._phaseNameDiv.textContent = info.phaseName;
-		}
+//		if (info.timeOfDay !== undefined) {
+//			this._timeOfDayDiv.textContent = info.timeOfDay;
+//		}
+//		if (info.phaseName !== undefined) {
+//			this._phaseNameDiv.textContent = info.phaseName;
+//		}
 	}
 
 

@@ -1,3 +1,10 @@
+/*
+Asset1.css
+wgbh-asset1
+astro.unl.edu
+2019-06-10
+*/
+
 
 .wgbh-asset1-root {
 	-moz-user-select: none;
@@ -122,14 +129,14 @@
 
 
 .wgbh-asset1-controlpanel-side {
-	flex: 3 3 30%;
+	flex: 3 3 20%;
 	margin: 0 3%;
 	padding: 0;
 }
 
 .wgbh-asset1-controlpanel-middle {
-	flex: 2 2 20%;
-	margin: auto 0;
+	flex: 3 3 20%;
+	margin: 0 0;
 	padding: 0;
 }
 
