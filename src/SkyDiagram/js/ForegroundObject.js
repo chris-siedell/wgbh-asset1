@@ -2,13 +2,15 @@
 ForegroundObject.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-09
+2019-06-10
 */
 
 
 /*
 
-The ForegroundObject object creates and manages foreground objects added to the scene.
+TODO: consider how to have refObjectID resolved only as needed, instead of with every update
+
+The ForegroundObject object creates and manages individual foreground objects added to the scene.
 
 These objects may be defined in variety of coordinate of systems.
 
@@ -16,15 +18,15 @@ These objects may be defined in variety of coordinate of systems.
 Horizon System
 --------------
 
-This is a *fixed* system.
+This is an *absolute* system.
 
-The "horizon" system is defined such that:
- x = 0.0 corresponds to the left horizon point (the horizon and track intersection),
- x = 1.0 corresponds to the right horizon point,
- y = 0.0 corresponds to the horizon level, and
- y = 1.0 corresponds to the bottom edge of the diagram.
+The horizon system is defined such that:
+	x = 0.0 corresponds to the left horizon point (the horizon and track intersection),
+	x = 1.0 corresponds to the right horizon point,
+	y = 0.0 corresponds to the horizon level, and
+	y = 1.0 corresponds to the bottom edge of the diagram.
 
-So the "horizon" system is a left-handed system.
+The horizon system is a left-handed system.
 
 If the horizon parameter (of MainGeometry) is 0 all y-values are essentially ignored and the
 	foreground objects will be placed at the bottom of the diagram.	
@@ -38,15 +40,18 @@ Object System
 
 This is a *relative* system.
 
-The "object" system uses another object (the reference) as the origin point.
+The object system uses another object (the reference) for the origin point and axis scaling.
 
-In this system the x and y scales are defined by the reference object's width
-	and height. For example, a value of <x,y> = <1,1> would place the object's origin
-	at the bottom-right corner of the reference object.
+The object system is defined such that:
+	x = 0.0, y = 0.0 corresponds to the upper-left corner of the reference object's image, and
+	x = 1.0, y = 1.0 corresponds to the bottom-right corner of the reference object's image.
 
-In this system the width is defined as a fraction of the reference object's width.
+The object system is a left-handed system. 
 
-To be well-defined, the refObjectID must match an object defined in a fixed system. If not
+The width is defined by the x-scale. That is, the width is specified as a fraction of the
+	reference object's width.
+
+To be well-defined, refObjectID must match an object using an absolute system. If not
 	well-defined the object will not be shown.
 
 
@@ -64,42 +69,66 @@ Parameters:
 												be provided since the current code can not obtain this information
 	applyNightShading		- a boolean that indicates whether the image should be shaded at night (default is true)
 	visibility					- an optional object to restrict the visibility of the object; if not defined then
-												the object is always shown
+												the object is always shown (assuming imageSrc is valid and the object is well-defined)
 	visibility					- if the visiblity object has sunPosition array, and each entry in the array is an
-		.sunPosition				object with valid begin and end properties, then those beginning and ending sun
+		.sunPosition				interval object with valid begin and end properties, then those beginning and ending sun
 		= [{begin, end}]		positions are used to determine when the object is shown
-		
 
 Flags:
-
+	hasRelativeSystemChanged		- raised whenever the object's screen x, y, width, or height attributes have changed (not
+																the params with the same name); indicates to any other object using this object as a
+																reference that it will need to update its own screen attributes
 
 Special Methods:
+	getElement()
 	getID()
-	getUsesFixedSystem()
-	getScreenPointForRelativePoint(pt)
+	getUsesAbsoluteSystem()
+	getScreenAttributesForRelativeParams(params)	- params must have x, y, offsetX, offsetY, width, and aspectRatio properties;
+																									the returned object will have x, y, width, and height properties;
+																									if the object is not well-defined or it does not use an absolute system
+																									this method will return undefined
 
 Dependencies:
-	
+	MainGeometry					- for objects using the horizon system
+	Sun										- for sun based visibility restrictions (optional)
+	ForegroundObjects			- for reference object lookup
+
+If the system is "object" then the object also depends on the reference object, but this dependency
+	is maintained by storing the refObjectID string and resolving the object (via ForegroundObjects)
+	with each update. A weak link avoids difficulties if the reference object is removed.
 
 */
 
 
+const svgNS = 'http://www.w3.org/2000/svg';
+const xlinkNS = 'http://www.w3.org/1999/xlink';
+
+
 export default class ForegroundObject {
 
-
-
+	
+	constructor(ID) {
 		
-		
-	constructor(parent, ID) {
-
-		// The parent is the ForegroundObjects instance.
-		this._parent = parent;
-
 		this._ID = ID;
+	
+		// _visibilityDependsOnSun <=> _params.visibility.sunPosition exists.
+		this._visibilityDependsOnSun = false;
+
+		// _isWellDefined <=> _x, _y, _width, and _height (screen attributes) are valid and up-to-date.
+		this._isWellDefined = false;
+
+		// _lastRefObj is used to determine if the reference object has changed (e.g. becoming undefined after being removed).
+		this._lastRefObj = undefined;
+
+		// _isVisible tracks the _element visibility (display attribute) to avoid unnecessary attribute changes.
+		this._isVisible = true;
+
+		this._element = document.createElementNS(svgNS, 'g');
+		this._image = undefined;
 
 		let defaultParams = {
 			imageSrc: '',
-			system: this.SYSTEM_HORIZON,
+			system: 'horizon',
 			x: 0,
 			y: 0,
 			offsetX: 0,
@@ -109,21 +138,99 @@ export default class ForegroundObject {
 			applyNightShading: true,
 		};
 
-		this._params = {
-			
-
+		this._params = {};
+		this.setParams(defaultParams);
 	}
+
+
+	/*
+	**	Linking Dependencies
+	*/
+
+	link(otherObjects) {
+		this._mainGeometry = otherObjects.mainGeometry;
+		this._sun = otherObjects.sun;
+		this._foregroundObjects = otherObjects.foregroundObjects;
+	}
+	
+	
+	/*
+	**	Update Cycle Methods
+	*/
+
+	update() {
+	
+		// Check dependencies.
+
+		if (this._visibilityDependsOnSun && this._sun.getHasPositionChanged()) {
+			this._needs_updateVisibility = true;
+		}
+
+		this._refObj = undefined;
+
+		if (this._params.system === 'object') {
+			// Reference object system.
+
+			// _refObj is resolved with every update (when system is 'object') in case it changes
+			//	or is removed. It is possible that it is undefined.
+			this._refObj = this._foregroundObjects.getObjectForID(this._params.refObjectID);
+
+			// If the resolved value of _refObj has changed, or if it is defined and its relative
+			//	system has changed, then we'll need an update.
+			if ((this._refObj !== this._lastRefObj) || (this._refObj !== undefined && this._refObj.getHasRelativeSystemChanged())) {
+				this._needs_updateScreenAttributes = true;
+			}
+		} else {
+			// Horizon system.
+
+			if (this._mainGeometry.getHasHorizonSystemChanged()) {
+				this._needs_updateScreenAttributes = true;
+			}
+		}
+
+		this._lastRefObj = this._refObj;
+
+		// Call internal update sub-methods as required.
+
+		if (this._needs_replaceImage) {
+			this._replaceImage();
+		}
+
+		if (this._needs_updateScreenAttributes) {
+			this._updateScreenAttributes();
+		}
+
+		if (this._needs_updateNightShading) {
+			this._updateNightShading();
+		}
+
+		if (this._needs_updateVisibility) {
+			this._updateVisibility();
+		}
+	}
+
+	clearFlags() {
+		this._hasRelativeSystemChanged = false;
+	}
+
+	getHasRelativeSystemChanged() {
+		return this._hasRelativeSystemChanged;
+	}
+
 
 	/*
 	**	Parameter Methods
 	*/
 
 	getParams() {
-		let params = {};
-		params.id = this._id;
+		return ForegroundObject.validateParams(this._params);
+	}
 
-		// TODO
-		params.foregroundObjects = this._copyForegroundObjects(this._params.foregroundObjects);
+	setParams(params) {
+		
+		let vp = ForegroundObject.validateParams(params);
+
+		this._setParams(vp);
 	}
 
 	_setParams(vp) {
@@ -133,9 +240,53 @@ export default class ForegroundObject {
 			this._params[key] = vp[key];
 		}
 
+		if (vp.hasOwnProperty('imageSrc')) {
+			this._needs_replaceImage = true;
+		}
+
+		if (vp.hasOwnProperty('system')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('refObjectID')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('x')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('y')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('offsetX')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('offsetY')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('width')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('aspectRatio')) {
+			this._needs_updateScreenAttributes = true;
+		}
+
+		if (vp.hasOwnProperty('applyNightShading')) {
+			this._needs_updateNightShading = true;
+		}
+
+		if (vp.hasOwnProperty('visibility')) {
+			this._needs_updateVisibility = true;
+		}
+
+		this._visibilityDependsOnSun = this._params.hasOwnProperty('visibility') && this._params.visibility.hasOwnProperty('sunPosition');
 	}
 
-	
 
 	/*
 	**	Special Methods
@@ -149,11 +300,191 @@ export default class ForegroundObject {
 		return this._ID;
 	}
 
+	getUsesAbsoluteSystem() {
+		return this._params.system === 'horizon';
+	}
 
+	getScreenAttributesForRelativeParams(params) {
+		// params must have x, y, offsetX, offsetY, width and aspectRatio properties, defined
+		//	in the relative object system.
+		// The returned object will have x, y, width, and height properties, in the screen system,
+		//	unless this foreground object is not well-defined, in which case it returns undefined.
+		// This method also returns undefined if the system is not an absolute system. Relaxing
+		//	this restriction would require modifying the object update sequence in ForegroundObjects
+		//	so that updates would occur in multiple rounds, going by the degree of descent from
+		//	an absolute system. (Currently there are two rounds: absolute, then relative.)
+
+		if (!this._isWellDefined) {
+			return undefined;
+		}
+
+		if (this._params.system !== 'horizon') {
+			return undefined;
+		}
+	
+		let attr = {};
+	
+		attr.width = params.width * this._width;
+		attr.height = attr.width / params.aspectRatio;
+		
+		let ox = params.offsetX * attr.width;
+		let oy = params.offsetY * attr.height;
+
+		attr.x = this._x - ox + params.x*this._width;
+		attr.y = this._y - oy + params.y*this._height;
+
+		return attr;
+	}
+
+	
+	/*
+	**	Internal Update Methods
+	*/
+
+	_updateScreenAttributes() {
+
+		this._hasRelativeSystemChanged = true;
+
+		let attr = undefined;
+		if (this._params.system === 'object') {
+			// _refObj was resolved in the update method (it may be undefined, though).
+			if (this._refObj !== undefined) {
+				attr = this._refObj.getScreenAttributesForRelativeParams(this._params);
+			}
+		} else {
+			attr = this._mainGeometry.getScreenAttributesForHorizonParams(this._params);
+		}
+
+		let newIsWellDefined;
+
+		if (attr === undefined) {
+			newIsWellDefined = false;
+		} else {
+			newIsWellDefined = true;
+
+			this._x = attr.x;
+			this._y = attr.y;
+			this._width = attr.width;
+			this._height = attr.height;
+
+			if (this._image !== undefined) {
+				this._image.setAttribute('x', this._x);
+				this._image.setAttribute('y', this._y);
+				this._image.setAttribute('width', this._width);
+				this._image.setAttribute('height', this._height);
+			}
+		}
+
+		if (newIsWellDefined !== this._isWellDefined) {
+			this._isWellDefined = newIsWellDefined;
+			this._needs_updateVisibility = true;
+		}
+
+		this._needs_updateScreenAttributes = false;
+	}
+
+	_updateNightShading() {
+
+		if (this._image !== undefined) {
+			if (this._params.applyNightShading) {
+				this._image.setAttribute('filter', 'url(#night-shading)')
+			} else {
+				this._image.setAttribute('filter', 'none')
+			}
+		}
+
+		this._needs_updateNightShading = false;
+	}
+
+	_updateVisibility() {
+		// Visibility is managed by toggling the display attribute of the group element.
+
+		// Visibility defaults to true.
+		let newIsVisible = true;
+
+		if (this._isWellDefined) {
+				
+			if (this._visibilityDependsOnSun) {
+				// _visibilityDependsOnSun <=> _params.visibility.sunPosition exists.
+	
+				let sunPosition = this._sun.getPosition();
+	
+				// Visibility now defaults to false unless the sun position is in a provided interval.
+				newIsVisible = false;
+	
+				let intervals = this._params.visibility.sunPosition;
+	
+				for (let i = 0; i < intervals.length; ++i) {
+	
+					let interval = intervals[i];
+	
+					if (interval.begin < interval.end) {
+						// No wraparound.
+						if (sunPosition >= interval.begin && sunPosition <= interval.end) {
+							newIsVisible = true;
+							break;
+						}
+					} else {
+						// Wraparound.
+						if (sunPosition >= interval.begin || sunPosition <= interval.end) {
+							newIsVisible = true;
+							break;
+						}
+					}
+				}
+			}
+		} else {
+			// Object is not well-defined so it will not be shown.
+			newIsVisible = false;
+		}
+
+		if (newIsVisible !== this._isVisible) {
+			this._isVisible = newIsVisible;
+			if (this._isVisible) {
+				this._element.setAttribute('display', 'inline');
+			} else {
+				this._element.setAttribute('display', 'none');
+			}
+		}	
+
+		this._needs_updateVisibility = false;
+	}
+
+	_replaceImage() {
+	
+		this._needs_updateScreenAttributes = true;
+		this._needs_updateNightShading = true;
+		this._needs_updateVisiblity = true;
+
+		if (typeof this._params.imageSrc === 'string' && this._params.imageSrc !== '') {
+			// Attach the image.
+
+			let newImage = document.createElementNS(svgNS, 'image');
+			newImage.setAttribute('preserveAspectRatio', 'xMinYMin');	
+			newImage.setAttributeNS(xlinkNS, 'href', this._params.imageSrc);
+
+			if (this._image !== undefined) {
+				this._element.replaceChild(newImage, this._image);
+			} else {
+				this._element.appendChild(newImage);
+			}
+	
+			this._image = newImage;
+		} else {
+			// No image specified.
+
+			if (this._image !== undefined) {
+				this._element.removeChild(this._image);
+				this._image = undefined;
+			}
+		}
+
+		this._needs_replaceImage = false;
+	}
 
 
 	/*
-	**	[Static] Validation Methods
+	**	[Static] Parameter Validation Methods
 	*/
 
 	static validateParams(params) {
@@ -168,7 +499,7 @@ export default class ForegroundObject {
 			vp.system = ForegroundObject._validateSystem(params.system);
 		}
 
-		if (params.hasOwnProperty('refObjectID') {
+		if (params.hasOwnProperty('refObjectID')) {
 			vp.refObjectID = ForegroundObject._validateRefObjectID(params.refObjectID);
 		}
 
@@ -196,11 +527,11 @@ export default class ForegroundObject {
 			vp.aspectRatio = ForegroundObject._validateNumber(params.aspectRatio, 'aspectRatio');
 		}
 
-		if (params.hasOwnProperty('applyNightShading') {
+		if (params.hasOwnProperty('applyNightShading')) {
 			vp.applyNightShading = Boolean(params.applyNightShading);
 		}
 
-		if (params.hasOwnProperty('visibility') {
+		if (params.hasOwnProperty('visibility')) {
 			vp.visibility = ForegroundObject._validateVisibility(params.visibility);
 		}
 

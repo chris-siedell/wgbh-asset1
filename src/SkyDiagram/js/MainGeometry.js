@@ -2,7 +2,7 @@
 MainGeometry.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-03
+2019-06-10
 */
 
 
@@ -24,6 +24,7 @@ Parameters:
 Flags:
 	haveDimensionsChanged
 	haveLayoutPropsChanged
+	hasHorizonSystemChanged
 
 Special Methods:
 	getRoot
@@ -31,6 +32,8 @@ Special Methods:
 	getDimensions
 	getContentDimensions
 	getLayoutProps
+	getScreenAttributesForHorizonParams(params)		- params must have x, y, offsetX, offsetY, width and aspectRatio properties;
+																									the returned object will have x, y, width, and height properties
 
 Dependencies:
 	<none>
@@ -93,6 +96,7 @@ export default class MainGeometry {
 	clearFlags() {
 		this._haveDimensionsChanged = false;
 		this._haveLayoutPropsChanged = false;
+		this._hasHorizonSystemChanged = false;
 	}
 
 	getHaveDimensionsChanged() {
@@ -101,6 +105,10 @@ export default class MainGeometry {
 	
 	getHaveLayoutPropsChanged() {
 		return this._haveLayoutPropsChanged;
+	}
+
+	getHasHorizonSystemChanged() {
+		return this._hasHorizonSystemChanged;
 	}
 
 
@@ -205,6 +213,28 @@ export default class MainGeometry {
 		return Object.assign({}, this._layoutProps);
 	}
 
+	getScreenAttributesForHorizonParams(params) {
+		// params must have x, y, offsetX, offsetY, width and aspectRatio properties, defined
+		//	in the horizon system.
+		// The returned object will have x, y, width, and height properties, in the screen system.
+		// See comments to ForegroundObject for more details.
+
+		let horizon = this._horizonSystem;
+
+		let attr = {};
+
+		attr.width = params.width * horizon.unitWidth;
+		attr.height = attr.width / params.aspectRatio;
+
+		let ox = params.offsetX * attr.width;
+		let oy = params.offsetY * attr.height;
+		
+		attr.x = horizon.xOrigin - ox + params.x*horizon.unitWidth;
+		attr.y = horizon.yOrigin - oy + params.y*horizon.unitHeight;
+
+		return attr;
+	}
+
 
 	/*
 	**	Internal Update Methods
@@ -235,6 +265,7 @@ export default class MainGeometry {
 		//console.log(' MainGeometry._updateLayoutProps');
 
 		this._haveLayoutPropsChanged = true;
+		this._hasHorizonSystemChanged = true;
 
 		this._horizonY = this._contentHeight*(1 - this._params.horizon);
 
@@ -249,6 +280,13 @@ export default class MainGeometry {
 			contentWidth: this._contentWidth,
 			contentHeight: this._contentHeight,
 			horizonY: this._horizonY,
+		}
+
+		this._horizonSystem = {
+			xOrigin: this._contentWidth * this._params.margin,
+			unitWidth: this._contentWidth*(1 - 2*this._params.margin),
+			yOrigin: this._horizonY,
+			unitHeight: this._contentHeight * this._params.horizon,
 		};
 
 		this._needs_updateLayoutProps = false;

@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-04
+2019-06-10
 */
 
 
@@ -16,7 +16,7 @@ import InfoPanel from './InfoPanel.js';
 
 
 var versionNum = '0.0';
-var versionDateStr = '2019-06-05';
+var versionDateStr = '2019-06-10';
 
 
 
@@ -95,31 +95,42 @@ class Asset1 {
 			moonImageSrc: 'graphics/Boston1_v6_moon-realistic.png',//moon.svg',
 			groundImageSrc: 'graphics/ground.svg',
 			foregroundObjects: [
-				{ imageSrc: 'graphics/tree.svg',
-					x: -0.05,
-					y: 0.05,
-					cx: 0.5,
-					cy: 1.0,
-					width: 0.1,
-					aspectRatio: 150/175},
-				{	imageSrc: 'graphics/house.svg',
-					x: 0.8,
-					y: 0.4,
-					cx: 0.5,
-					cy: 0.95,
-					width: 0.17,
-					aspectRatio: 150/130},
-				{ imageSrc: 'graphics/kids.svg',
-					x: 0.4,
-					y: 0.6,
-					cx: 0.5,
-					cy: 0.95,
-					width: 0.30,
-					aspectRatio: 245/145,
-					visibility: {
-						sunPosition: [
-							{begin: ((9 - 6)/24), end: ((18 - 6)/24)},
-						],
+				{	ID: 'tree',
+					params: {
+						imageSrc: 'graphics/tree.svg',
+						x: -0.05,
+						y: 0.05,
+						offsetX: 0.5,
+						offsetY: 1.0,
+						width: 0.1,
+						aspectRatio: 150/175,
+					},
+				},
+				{	ID: 'house',
+					params: {
+						imageSrc: 'graphics/house.svg',
+						x: 0.8,
+						y: 0.4,
+						offsetX: 0.5,
+						offsetY: 0.95,
+						width: 0.17,
+						aspectRatio: 150/130,
+					},
+				},
+				{ ID: 'kids',
+					params: {
+						imageSrc: 'graphics/kids.svg',
+						x: 0.4,
+						y: 0.6,
+						offsetX: 0.5,
+						offsetY: 0.95,
+						width: 0.30,
+						aspectRatio: 245/145,
+						visibility: {
+							sunPosition: [
+								{begin: ((9 - 6)/24), end: ((18 - 6)/24)},
+							],
+						},
 					},
 				},
 			],

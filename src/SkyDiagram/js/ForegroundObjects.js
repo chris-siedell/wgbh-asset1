@@ -2,8 +2,11 @@
 ForegroundObjects.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-09
+2019-06-10
 */
+
+
+import ForegroundObject from './ForegroundObject.js';
 
 
 /*
@@ -55,8 +58,7 @@ Special Methods:
 	getObjectForID(ID)	- will return a ForegroundObject instance or undefined
 
 Dependencies:
-	MainGeometry
-	Sun
+	<none>
 
 */
 
@@ -88,24 +90,22 @@ export default class ForegroundObjects {
 	*/
 
 	link(otherObjects) {
-		this._mainGeometry = otherObjects.mainGeometry;
-		this._sun = otherObjects.sun;
+		// This object has no dependencies, but the ForegroundObject instances
+		//	it creates do.
+		this._otherObjects = otherObjects;
 	}
 
 
 	/*
-	**
+	**	Update Cycle Methods
 	*/
 
 	update() {
 
-		// update is called on each ForegroundObject.
-
 		// Update the fixed system objects first.
 		let relObjs = [];
-		for (let i = 0; i < this._objects.length; ++i) {
-			let obj = this._objects[i];
-			if (obj.getUsesFixedSystem()) {
+		for (const obj of this._objects) {
+			if (obj.getUsesAbsoluteSystem()) {
 				obj.update();
 			} else {
 				relObjs.push(obj);
@@ -113,8 +113,8 @@ export default class ForegroundObjects {
 		}
 
 		// Update the relative system objects.
-		for (let i = 0; i < relObjs.length; ++i) {
-			relObjs[i].update();
+		for (const obj of relObjs) {
+			obj.update();
 		}
 
 		if (this._needs_updateElements) {
@@ -123,26 +123,10 @@ export default class ForegroundObjects {
 	}
 
 	clearFlags() {
-		// No flags.
-	}
-
-
-	/*
-	**	Special Methods
-	*/
-
-	getElement() {
-		return this._element;
-	}
-
-	getObjectForID(ID) {
-		for (let i = 0; i < this._objects.length; ++i) {
-			if (this._objects[i].getID() === ID) {
-				return this._objects[i];
-			}
+		for (const obj of this._objects) {
+			obj.clearFlags();
 		}
-		return undefined;
-	}	
+	}
 
 
 	/*
@@ -177,15 +161,18 @@ export default class ForegroundObjects {
 			for (let i = 0; i < vp.foregroundObjects.length; ++i) {
 				
 				// Reminder: fobj will have an ID property, but may or may not
-				//	have a params property. 				let fobj = vp.foregroundObjects[i];
+				//	have a params property.
+
+				let fobj = vp.foregroundObjects[i];
 
 				let obj = this.getObjectForID(fobj.ID);
 				if (obj === undefined) {
-					obj = new ForegroundObject(this, fobj.ID);
+					obj = new ForegroundObject(fobj.ID);
+					obj.link(this._otherObjects);
 				}
 				newObjects[i] = obj;
 
-				// If params exists, it has already been validated.
+				// If params exists it has already been validated.
 				if (fobj.hasOwnProperty('params')) {
 					obj._setParams(fobj.params);
 				}
@@ -209,10 +196,25 @@ export default class ForegroundObjects {
 		}
 	}
 
+
+	/*
+	**	Special Methods
+	*/
+
+	getElement() {
+		return this._element;
+	}
+
+	getObjectForID(ID) {
+		for (const obj of this._objects) {
+			if (obj.getID() === ID) {
+				return obj;
+			}
+		}
+		return undefined;
+	}	
+
 	
-
-
-
 	/*
 	**	Internal Update Methods
 	*/
@@ -237,7 +239,7 @@ export default class ForegroundObjects {
 
 
 	/*
-	**	[Static] Validation Methods
+	**	[Static] Parameter Validation Methods
 	*/
 
 	static validateParams(params) {
@@ -289,7 +291,7 @@ export default class ForegroundObjects {
 				throw new Error('All object IDs in the foregroundObjects array must be non-empty.');
 			}
 
-			if (IDs.indexof(ID) !== -1) {
+			if (IDs.indexOf(ID) !== -1) {
 				throw new Error('All object IDs in the foregroundObjects array must be unique.');
 			}
 

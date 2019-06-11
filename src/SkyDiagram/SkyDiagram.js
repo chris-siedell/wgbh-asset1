@@ -2,7 +2,7 @@
 SkyDiagram.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-03
+2019-06-10
 */
 
 
@@ -16,9 +16,9 @@ import Track from './js/Track.js';
 import Sun from './js/Sun.js';
 import Moon from './js/Moon.js';
 import NightShading from './js/NightShading.js';
-//import TerrestrialGroup from './js/TerrestrialGroup.js';
 import Ground from './js/Ground.js';
 import ForegroundObjects from './js/ForegroundObjects.js';
+
 
 /*
 
@@ -93,7 +93,6 @@ export default class SkyDiagram {
 		this._subs.sun								= new Sun();
 		this._subs.moon								= new Moon();
 		this._subs.nightShading				= new NightShading();
-//		this._subs.terrestrialGroup		= new TerrestrialGroup();
 		this._subs.ground							= new Ground();
 		this._subs.foregroundObjects	= new ForegroundObjects();
 
@@ -109,7 +108,7 @@ export default class SkyDiagram {
 		//	and sized by MainGeometry.
 
 		// The SVG has several layers, added from back to front. The layers are managed by
-		//	separate sub-objects.
+		//	the separate sub-objects.
 
 		let svg = this._subs.mainGeometry.getSVG();
 
@@ -120,12 +119,6 @@ export default class SkyDiagram {
 		svg.appendChild(this._subs.nightShading.getElement());
 		svg.appendChild(this._subs.ground.getElement());
 		svg.appendChild(this._subs.foregroundObjects.getElement());
-
-//		let terrestrialGroup = this._subs.terrestrialGroup.getElement();
-//		svg.appendChild(terrestrialGroup);
-//
-//		terrestrialGroup.appendChild(this._subs.ground.getElement());
-//		terrestrialGroup.appendChild(this._subs.foregroundObjects.getElement());
 	}
 
 
@@ -170,7 +163,6 @@ export default class SkyDiagram {
 		this._subs.sky.update();
 		this._subs.track.update();
 		this._subs.nightShading.update();
-//		this._subs.terrestrialGroup.update();
 		this._subs.ground.update();
 		this._subs.foregroundObjects.update();
 
