@@ -2,7 +2,7 @@
 SkyDiagram.js
 wgbh-skydiagram
 astro.unl.edu
-2019-06-10
+2019-06-17
 */
 
 
@@ -15,7 +15,6 @@ import Sky from './js/Sky.js';
 import Track from './js/Track.js';
 import Sun from './js/Sun.js';
 import Moon from './js/Moon.js';
-import NightShading from './js/NightShading.js';
 import Ground from './js/Ground.js';
 import ForegroundObjects from './js/ForegroundObjects.js';
 
@@ -92,7 +91,6 @@ export default class SkyDiagram {
 		this._subs.track							= new Track();
 		this._subs.sun								= new Sun();
 		this._subs.moon								= new Moon();
-		this._subs.nightShading				= new NightShading();
 		this._subs.ground							= new Ground();
 		this._subs.foregroundObjects	= new ForegroundObjects();
 
@@ -112,11 +110,11 @@ export default class SkyDiagram {
 
 		let svg = this._subs.mainGeometry.getSVG();
 
-		svg.appendChild(this._subs.sky.getElement());
+		svg.appendChild(this._subs.sky.getSkyElement());
 		svg.appendChild(this._subs.track.getElement());
 		svg.appendChild(this._subs.sun.getElement());
 		svg.appendChild(this._subs.moon.getElement());
-		svg.appendChild(this._subs.nightShading.getElement());
+		svg.appendChild(this._subs.sky.getFilterElement());
 		svg.appendChild(this._subs.ground.getElement());
 		svg.appendChild(this._subs.foregroundObjects.getElement());
 	}
@@ -162,7 +160,6 @@ export default class SkyDiagram {
 		this._subs.moon.update();
 		this._subs.sky.update();
 		this._subs.track.update();
-		this._subs.nightShading.update();
 		this._subs.ground.update();
 		this._subs.foregroundObjects.update();
 

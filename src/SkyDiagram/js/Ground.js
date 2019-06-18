@@ -178,6 +178,9 @@ export default class Ground {
 
 			this._ground = newGround;
 
+this._ground.setAttribute('fill', '#ff0000');
+this._ground.setAttribute('fill-opacity', 0.8);
+
 		} else {
 			// No ground image specified.
 

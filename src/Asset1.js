@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-10
+2019-06-17
 */
 
 
@@ -15,8 +15,8 @@ import InfoPanel from './InfoPanel.js';
 
 
 
-var versionNum = '0.1.0';
-var versionDateStr = '2019-06-10';
+var versionNum = '0.2.0';
+var versionDateStr = '2019-06-17';
 
 
 
