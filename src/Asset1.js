@@ -10,11 +10,13 @@ import './Asset1.css';
 
 import SkyDiagram from 'SkyDiagram.js';
 
+import {SkyDiagramParams} from './SkyDiagramParams/SkyDiagramParams.js';
+
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
 
 
-class Asset1 {
+export class Asset1 {
 
 
 	constructor() {
@@ -85,80 +87,14 @@ class Asset1 {
 		this._controlPanel = new ControlPanel(this);
 		this._root.appendChild(this._controlPanel.getElement());
 
-		let diagramSettings = {
-			showTrack: false,
-			darkestShadingLevel: 0.3,
-			sunImageSrc: 'graphics/sun.svg',
-			moonImageSrc: 'graphics/Boston1_v7_moon-realisticcartoon.svg',//moon.svg',
-			groundImageSrc: 'graphics/ground.svg',
-			foregroundObjects: [
-				{	ID: 'tree',
-					params: {
-						imageSrc: 'graphics/tree.svg',
-						x: -0.05,
-						y: 0.05,
-						offsetX: 0.5,
-						offsetY: 1.0,
-						width: 0.1,
-						aspectRatio: 150/175,
-					},
-				},
-				{	ID: 'house',
-					params: {
-						imageSrc: 'graphics/house.svg',
-						x: 0.8,
-						y: 0.4,
-						offsetX: 0.5,
-						offsetY: 0.95,
-						width: 0.17,
-						aspectRatio: 150/130,
-					},
-				},
-				{	ID: 'lamp-pane-off',
-					params: {
-						imageSrc: 'graphics/lamp-pane-off.svg',
-						system: 'object',
-						refObjectID: 'house',
-						x: 0.5,
-						y: 0.2,
-						offsetX: 0.5,
-						offsetY: 0.0,
-						width: 0.4,
-						aspectRatio: 2,
-					},
-				}, 
-				{	ID: 'lamp-pane-on',
-					params: {
-						imageSrc: 'graphics/lamp-pane-on.svg',
-						system: 'object',
-						refObjectID: 'house',
-						x: 0.5,
-						y: 0.2,
-						offsetX: 0.5,
-						offsetY: 0.0,
-						width: 0.4,
-						aspectRatio: 2,
-						applyNightShading: false,
-						visibility: {
-							sunPosition: [{begin: (18 - 6)/24, end: (6 - 6)/24}],
-						}
-					},
-				}, 
-				{	ID: 'lamp-frame',
-					params: {
-						imageSrc: 'graphics/lamp-frame.svg',
-						system: 'object',
-						refObjectID: 'house',
-						x: 0.5,
-						y: 0.2,
-						offsetX: 0.5,
-						offsetY: 0.0,
-						width: 0.4,
-						aspectRatio: 2,
-					},
-				}, 
-			],
-		};
+		// Load sky diagram settings.
+		let diagramSettings = SkyDiagramParams;
+		if (diagramSettings.hasOwnProperty('width')) {
+			delete diagramSettings.width;
+		}
+		if (diagramSettings.hasOwnProperty('height')) {
+			delete diagramSettings.height;
+		}
 		this._diagram.setParams(diagramSettings);
 
 		// _isPlaying signifies that the simulation is running continuously.

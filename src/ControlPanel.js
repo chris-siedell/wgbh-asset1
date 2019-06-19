@@ -2,11 +2,18 @@
 ControlPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-17
+2019-06-19
 */
 
-import Button from './Button.js';
 
+import PlayIconURL from './icons/play-icons_v2_play.svg';
+import PauseIconURL from './icons/play-icons_v2_pause.svg';
+import SkipBackOneDayURL from './icons/double-back.svg';
+import SkipBackOneHourURL from './icons/back.svg';
+import SkipForwardOneDayURL from './icons/double-forward.svg';
+import SkipForwardOneHourURL from './icons/forward.svg';
+
+import Button from './Button.js';
 
 
 export default class ControlPanel {
@@ -40,22 +47,22 @@ export default class ControlPanel {
 		rightSection.classList.add('wgbh-asset1-controlpanel-side');
 		this._element.appendChild(rightSection);
 
-		this._decrementHourButton = new Button({title: 'go back one hour', text: '1 Hour', icon: 'v1/back.svg'});
+		this._decrementHourButton = new Button({title: 'go back one hour', text: '1 Hour', icon: SkipBackOneHourURL});
 		this._decrementHourButton.setHandler(this._parent.decrementHour);
 //		this._decrementHourButton.addCSSClass('increment-decrement');
 		leftSection.appendChild(this._decrementHourButton.getElement());
 		
-		this._decrementDayButton = new Button({title: 'go back one day', text: '1 Day', icon: 'v1/double-back.svg'});
+		this._decrementDayButton = new Button({title: 'go back one day', text: '1 Day', icon: SkipBackOneDayURL});
 		this._decrementDayButton.setHandler(this._parent.decrementDay);
 //		this._decrementDayButton.addCSSClass('increment-decrement');
 		leftSection.appendChild(this._decrementDayButton.getElement());
 
-		this._playButton = new Button({title: 'play', text: 'Play', icon: 'play-icons_v2_play.svg'});
+		this._playButton = new Button({title: 'play', text: 'Play', icon: PlayIconURL});
 		this._playButton.setHandler(this._parent.play);
 //		this._playButton.addCSSClass('play-pause');
 		middleSection.appendChild(this._playButton.getElement());
 
-		this._pauseButton = new Button({title: 'pause', text: 'Pause', icon: 'play-icons_v2_pause.svg'});
+		this._pauseButton = new Button({title: 'pause', text: 'Pause', icon: PauseIconURL});
 		this._pauseButton.setHandler(this._parent.pause);
 //		this._pauseButton.addCSSClass('play-pause');
 		middleSection.appendChild(this._pauseButton.getElement());
@@ -64,12 +71,12 @@ export default class ControlPanel {
 		this._goToDay1Button.setHandler(this._parent.goToDay1);
 		middleSection.appendChild(this._goToDay1Button.getElement());
 
-		this._incrementHourButton = new Button({title: 'go forward one hour', text: '1 Hour', icon: 'v1/forward.svg'});
+		this._incrementHourButton = new Button({title: 'go forward one hour', text: '1 Hour', icon: SkipForwardOneHourURL});
 		this._incrementHourButton.setHandler(this._parent.incrementHour);
 //		this._incrementHourButton.addCSSClass('increment-decrement');
 		rightSection.appendChild(this._incrementHourButton.getElement());
 
-		this._incrementDayButton = new Button({title: 'go forward one day', text: '1 Day', icon: 'v1/double-forward.svg'});
+		this._incrementDayButton = new Button({title: 'go forward one day', text: '1 Day', icon: SkipForwardOneDayURL});
 		this._incrementDayButton.setHandler(this._parent.incrementDay);
 //		this._incrementDayButton.addCSSClass('increment-decrement');
 		rightSection.appendChild(this._incrementDayButton.getElement());

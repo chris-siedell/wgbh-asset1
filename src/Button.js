@@ -2,7 +2,7 @@
 Button.js
 wgbh-asset1
 astro.unl.edu
-2019-06-17
+2019-06-19
 */
 
 
@@ -39,7 +39,7 @@ export default class Button {
 			if (params.icon !== undefined) {
 
 				let icon = document.createElement('img');
-				icon.src = 'icons/' + params.icon;
+				icon.src = params.icon;
 				this._button.appendChild(icon);
 
 				let text = document.createElement('div');
