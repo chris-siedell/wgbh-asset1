@@ -1,4 +1,8 @@
 
+/untracked/*
+!/untracked/readme.md
+
+
 *.swp
 
 .DS_Store

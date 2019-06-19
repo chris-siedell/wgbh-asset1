@@ -2,22 +2,16 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-17
+2019-06-19
 */
 
 
 import './Asset1.css';
 
-import SkyDiagram from './SkyDiagram/SkyDiagram.js';
+import SkyDiagram from 'SkyDiagram.js';
 
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
-
-
-
-var versionNum = '0.2.0';
-var versionDateStr = '2019-06-17';
-
 
 
 class Asset1 {
@@ -554,10 +548,35 @@ class Asset1 {
 }
 
 
+/*
+**	WGBH Window Object Module Setup
+**
+**	Assign the constants below to have the component made available
+**		via the window object.
+**	New instances of the component can be created using
+**			var c = new window.WGBH[COMPONENT_NAME]();
+**		or
+**			var c = new window.WGBH.<COMPONENT_NAME>();
+*/
+
+const COMPONENT = Asset1;
+const COMPONENT_NAME = 'Asset1';
+const VERSION_STR = '0.3.0';
+const BUILD_DATE_STR = '2019-06-19';
+
 if (typeof window !== 'undefined') {
-	if (window.WGBHAsset1 === undefined) {
-		window.WGBHAsset1 = Asset1;
-		console.info('Component loaded: WGBHAsset1 (version: ' + versionNum + ', build: ' + versionDateStr + ')');
+	if (!window.hasOwnProperty('WGBH')) {
+		window.WGBH = {};
+	}
+	if (!window.WGBH.hasOwnProperty(COMPONENT_NAME)) {
+		window.WGBH[COMPONENT_NAME] = COMPONENT;
+		console.info('Component loaded: WGBH.' + COMPONENT_NAME + ' (version: '
+			+ VERSION_STR + ', build: ' + BUILD_DATE_STR + ')');
+	} else {
+		console.warn('The component WGBH.' + COMPONENT_NAME
+			+ ' has already been loaded. (This version: ' + VERSION_STR
+			+ ', build: ' + BUILD_DATE_STR + '.)');
 	}
 }
+
 
