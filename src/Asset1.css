@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-21
+2019-06-22
 */
 
 
@@ -13,13 +13,9 @@ astro.unl.edu
 	user-select: none;
 
 	overflow: hidden;
-	position: relative;
 
-	position: relative;
 	padding: 0;
 	margin: 0;
-
-	width: 1000px;	
 
 	background-color: black;
 	border: none;
@@ -28,90 +24,28 @@ astro.unl.edu
 
 
 /*
+**	Sky Diagram
+*/
+
+
+/*
 **	Info Panel
 */
 
 .wgbh-asset1-infopanel {
 	width: 100%;
-
 	text-align: center;
-	
-	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-	padding: 0.7vw 0 0 0;
+	margin: 0;
+	padding: 0.8rem 0;
 }
-
 
 .wgbh-asset1-infopanel div {
 	display: inline-block;
-
 	width: 30%;
-
 	font-family: "Muli", sans-serif;
 	font-weight: 800;
-
-	
-	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-	font-size: 3vw;
-
+	font-size: 2rem;
 	color: white;
-}
-
-
-/*
-**	Control Panel
-*/
-
-.wgbh-asset1-controlpanel {
-	width: 100%;
-
-	margin: 0;
-
-	padding: 4rem 0 8rem 0;
-	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-/*	padding: 0.7vw 0 1.5vw 0;*/
-	
-	display: flex;
-	flex-direction: row;
-}
-
-
-
-
-.wgbh-asset1-controlpanel button:disabled {
-	opacity: 0.6;
-	cursor: default;
-}
-
-
-.wgbh-asset1-controlpanel button:focus {
-	outline: 6px solid white;
-	outline-offset: 3px;
-	border: none;
-}
-
-.wgbh-asset1-controlpanel button::-moz-focus-inner {
-	border: none;
-}
-
-
-
-
-.wgbh-asset1-controlpanel-side {
-	flex: 3 3 20%;
-	margin: 0 3%;
-	padding: 0;
-}
-
-.wgbh-asset1-controlpanel-middle {
-	flex: 3 3 20%;
-	margin: 0 0;
-	padding: 0;
-}
-
-
-.wgbh-asset1-controlpanel button:not([disabled]):active {
-	transform: translateY(4px);
-	box-shadow: none;
 }
 
 
@@ -136,39 +70,59 @@ astro.unl.edu
 	align-items: center;
 	justify-content: center;
 	margin: 0;
-	padding:0;
+	padding: 0;
 	height: 100%;
 	line-height: 1;
-/*	background-color: rgba(255, 255, 255, 0.3);*/
 }
 
 .wgbh-asset1-button img {
 	display: inline-block;
 	margin: 0 0.5rem 0 0;
 	height: 0.8em;
-/*	background-color: rgba(0, 0, 255, 0.3);*/
 }
 	
 .wgbh-asset1-button span {
 	padding: 0.1em 0 0 0;
 	margin: 0;
-/*	background-color: rgba(255, 0, 0, 0.3);*/
 }
+
+.wgbh-asset1-controlpanel button:not([disabled]):active {
+	transform: translateY(4px);
+	box-shadow: none;
+}
+
+.wgbh-asset1-controlpanel button:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.wgbh-asset1-controlpanel button:focus {
+	outline: 6px solid white;
+	outline-offset: 3px;
+	border: none;
+}
+
+.wgbh-asset1-controlpanel button::-moz-focus-inner {
+	border: none;
+}
+
 
 /*
 **	Specific Buttons
 */
 
 .wgbh-asset1-skip {
-	margin: 1rem auto;
+/*	margin: 0 auto 1.2rem auto;*/
+	margin: 0.6rem 0.4rem;
 	font-size: 1.4rem;
 	padding: 0.2rem;
 	height: 2.2rem;
-	width: 10rem;
+	width: 9rem;
 }
 
 .wgbh-asset1-play-pause {
-	margin: 2rem auto;
+/*	margin: 0 auto 2rem auto;*/
+	margin: 1rem 0.8rem;
 	font-size: 2.2rem;
 	padding: 0.2rem;
 	height: 4rem;
@@ -176,12 +130,174 @@ astro.unl.edu
 }
 
 .wgbh-asset1-reset {
-	margin: 1rem auto;
+	/*margin: 0 auto 1.2rem auto;*/
+	margin: 0;
 	font-size: 1rem;
 	padding: 0.2rem;
 	height: 1.7rem;
 	width: 9rem;
 }
 
+
+
+/*
+**	Control Panel
+*/
+
+
+
+
+
+@media (max-width: 44rem), (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
+	
+	.wgbh-asset1-controlpanel {
+		background-color: rgba(255, 255, 128, 0.5);
+		margin: 0 auto;
+		padding: 0;
+		width: 100%;
+		min-width: 20rem; /* 20rem = 320px / (16px/rem) -- iPhone 7 in portrait, zoomed display */
+	}
+	
+	.wgbh-asset1-controlpanel-primary {
+		width: 100%;
+		display: block;
+		text-align: center;
+	}
+	
+	.wgbh-asset1-controlpanel-top {
+		width: 100%;	
+		background-color: rgba(0, 255, 0, 0.3);
+		margin: 0; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-left {
+		background-color: rgba(255, 0, 0, 0.3);
+		width: 49%;
+		display: inline-block;
+		margin: 0 auto; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-right {
+		background-color: rgba(0, 0, 255, 0.3);
+		width: 49%;
+		display: inline-block;
+		margin: 0 auto; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-bottom {
+		width: 100%;
+		margin: 0;
+		padding: 0 0 0.4rem 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	.wgbh-asset1-play-pause {
+		display: inline-block;
+	}
+
+	.wgbh-asset1-skip {
+		display: inline-block;
+	}
+
+}
+
+
+
+@media (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
+	.wgbh-asset1-panels {
+		position: absolute;
+		width: 20rem;
+		top: 0px;
+		left: calc(100% - 20rem);	
+	}
+	.wgbh-asset1-diagram {
+		position: absolute;
+	}
+}
+
+@media (max-aspect-ratio: 177/100) {
+	.wgbh-asset1-panels {
+		position: static;
+		width: 100%;
+	}
+	.wgbh-asset1-diagram {
+		position: static;
+	}
+}
+
+@media (min-width: 44rem) and (max-aspect-ratio: 177/100) {
+
+	.wgbh-asset1-controlpanel {
+		background-color: rgba(255, 255, 255, 0.3);
+		margin: 0 auto;
+		padding: 0;
+		width: 100%;
+		max-width: 68rem;
+	}
+	
+	.wgbh-asset1-controlpanel-primary {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+	
+	.wgbh-asset1-controlpanel-left {
+		flex: 1 1 30%;
+		order: 1;
+		background-color: rgba(255, 0, 0, 0.3);
+		display: block;
+		margin: 0; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-top {
+		flex: 1 1 20%;
+		order: 2;
+		background-color: rgba(0, 255, 0, 0.3);
+		display: block;
+		margin: 0; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-right {
+		flex: 1 1 30%;
+		order: 3;
+		background-color: rgba(0, 0, 255, 0.3);
+		display: block;
+		margin: 0; 
+		padding: 0;
+	}
+	
+	.wgbh-asset1-controlpanel-bottom {
+		width: 100%;
+		margin: 0;
+		padding: 0 0 0.4rem 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	.wgbh-asset1-play-pause {
+		display: inline-block;
+	}
+
+	.wgbh-asset1-skip {
+		display: inline-block;
+	}
+
+
+}
 
 

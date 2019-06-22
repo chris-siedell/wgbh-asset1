@@ -2,7 +2,7 @@
 Button.js
 wgbh-asset1
 astro.unl.edu
-2019-06-21
+2019-06-22
 */
 
 
@@ -57,7 +57,7 @@ export default class Button {
 	
 	setVisible(arg) {
 		if (arg) {
-			this._button.style.display = 'block';
+			this._button.style.display = 'inline-block';
 		} else {
 			this._button.style.display = 'none';
 		}

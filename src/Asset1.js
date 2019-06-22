@@ -80,14 +80,19 @@ export class Asset1 {
 
 		this._diagram = new SkyDiagram();
 		let diagramElement = this._diagram.getElement();
-		diagramElement.classList.add('wgbh-asset1-center');
+		diagramElement.classList.add('wgbh-asset1-diagram');
 		this._root.appendChild(diagramElement);
 
+
+		this._panels = document.createElement('div');
+		this._panels.classList.add('wgbh-asset1-panels');
+		this._root.appendChild(this._panels);
+
 		this._infoPanel = new InfoPanel();
-		this._root.appendChild(this._infoPanel.getElement());
+		this._panels.appendChild(this._infoPanel.getElement());
 
 		this._controlPanel = new ControlPanel(this);
-		this._root.appendChild(this._controlPanel.getElement());
+		this._panels.appendChild(this._controlPanel.getElement());
 
 
 		// _isPlaying signifies that the simulation is running continuously.
@@ -488,24 +493,34 @@ export class Asset1 {
 		this._root.style.width = this._width + 'px';
 		this._root.style.height = this._height + 'px';
 
-		let iph = this._infoPanel.getHeight();
-		let cph = this._controlPanel.getHeight();
-	
-		let skyParams = {
-			width: this._width,
-			height: this._height - iph - cph,
-		};
+		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
+		console.log('useSidewaysLayout: '+useSidewaysLayout);
 
-		let ratio = skyParams.width / skyParams.height;
-		if (ratio < this._minSkyDiagramAspectRatio) {
-			skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
-		} else if (ratio > this._maxSkyDiagramAspectRatio) {
-			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
-			// TODO -- need to fix CSS
+		let skyParams = {};
+
+		if (useSidewaysLayout) {
+		
+			let bb = this._panels.getBoundingClientRect();
+			skyParams.width = this._width - bb.width;
+			skyParams.height = this._height;
+
+		} else {
+	
+			let iph = this._infoPanel.getHeight();
+			let cph = this._controlPanel.getHeight();
+
+			skyParams.width =  this._width;
+			skyParams.height = this._height - iph - cph;
+
 		}
-
-		console.log("aspect ratio: "+ratio+", "+skyParams.width+", "+skyParams.height);
 	
+			let ratio = skyParams.width / skyParams.height;
+			if (ratio < this._minSkyDiagramAspectRatio) {
+				skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
+			} else if (ratio > this._maxSkyDiagramAspectRatio) {
+				skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
+			}
+			console.log("diagram aspect ratio: "+ratio+", "+skyParams.width+", "+skyParams.height);
 		this._diagram.setParams(skyParams);
 	
 		this._needs_redoLayout = false;

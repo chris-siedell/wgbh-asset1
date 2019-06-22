@@ -35,17 +35,25 @@ export default class ControlPanel {
 		this._element = document.createElement('div');
 		this._element.classList.add('wgbh-asset1-controlpanel');
 
-		let leftSection = document.createElement('div');
-		leftSection.classList.add('wgbh-asset1-controlpanel-side');
-		this._element.appendChild(leftSection);
+		let primaryBlock = document.createElement('div');
+		primaryBlock.classList.add('wgbh-asset1-controlpanel-primary');
+		this._element.appendChild(primaryBlock);
 
-		let middleSection = document.createElement('div');
-		middleSection.classList.add('wgbh-asset1-controlpanel-middle');
-		this._element.appendChild(middleSection);
+		let topSection = document.createElement('div');
+		topSection.classList.add('wgbh-asset1-controlpanel-top');
+		primaryBlock.appendChild(topSection);
+
+		let leftSection = document.createElement('div');
+		leftSection.classList.add('wgbh-asset1-controlpanel-left');
+		primaryBlock.appendChild(leftSection);
 
 		let rightSection = document.createElement('div');
-		rightSection.classList.add('wgbh-asset1-controlpanel-side');
-		this._element.appendChild(rightSection);
+		rightSection.classList.add('wgbh-asset1-controlpanel-right');
+		primaryBlock.appendChild(rightSection);
+
+		let bottomSection = document.createElement('div');
+		bottomSection.classList.add('wgbh-asset1-controlpanel-bottom');
+		this._element.appendChild(bottomSection);
 
 
 		this._decrementHourButton = new Button({
@@ -74,7 +82,7 @@ export default class ControlPanel {
 			specificClass: 'wgbh-asset1-play-pause',
 		});
 		this._playButton.addHandler(this._parent.play);
-		middleSection.appendChild(this._playButton.getElement());
+		topSection.appendChild(this._playButton.getElement());
 
 		this._pauseButton = new Button({
 			title: 'pause',
@@ -83,7 +91,7 @@ export default class ControlPanel {
 			specificClass: 'wgbh-asset1-play-pause',
 		});
 		this._pauseButton.addHandler(this._parent.pause);
-		middleSection.appendChild(this._pauseButton.getElement());
+		topSection.appendChild(this._pauseButton.getElement());
 
 		this._goToDay1Button = new Button({
 			title: 'go to day 1',
@@ -91,7 +99,7 @@ export default class ControlPanel {
 			specificClass: 'wgbh-asset1-reset',
 		});
 		this._goToDay1Button.addHandler(this._parent.goToDay1);
-		middleSection.appendChild(this._goToDay1Button.getElement());
+		bottomSection.appendChild(this._goToDay1Button.getElement());
 
 		this._incrementHourButton = new Button({
 			title: 'go forward one hour',
