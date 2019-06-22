@@ -2,7 +2,7 @@
 InfoPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-10
+2019-06-21
 */
 
 
@@ -30,6 +30,11 @@ export default class InfoPanel {
 //		this._phaseNameDiv.textContent = '.';
 //		this._element.appendChild(this._phaseNameDiv);
 
+	}
+
+	getMinHeight() {
+		let bb = this._sampler.getBoundingClientRect();
+		return bb.height;
 	}
 
 

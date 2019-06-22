@@ -2,7 +2,7 @@
 ControlPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-19
+2019-06-21
 */
 
 
@@ -47,52 +47,82 @@ export default class ControlPanel {
 		rightSection.classList.add('wgbh-asset1-controlpanel-side');
 		this._element.appendChild(rightSection);
 
-		this._decrementHourButton = new Button({title: 'go back one hour', text: '1 Hour', icon: SkipBackOneHourURL});
-		this._decrementHourButton.setHandler(this._parent.decrementHour);
-//		this._decrementHourButton.addCSSClass('increment-decrement');
+
+		this._decrementHourButton = new Button({
+			title: 'go back one hour',
+			text: '1 Hour',
+			iconSrc: SkipBackOneHourURL,
+			specificClass: 'wgbh-asset1-skip',
+		});
+		this._decrementHourButton.addHandler(this._parent.decrementHour);
 		leftSection.appendChild(this._decrementHourButton.getElement());
 		
-		this._decrementDayButton = new Button({title: 'go back one day', text: '1 Day', icon: SkipBackOneDayURL});
-		this._decrementDayButton.setHandler(this._parent.decrementDay);
-//		this._decrementDayButton.addCSSClass('increment-decrement');
+		this._decrementDayButton = new Button({
+			title: 'go back one day',
+			text: '1 Day',
+			iconSrc: SkipBackOneDayURL,
+			specificClass: 'wgbh-asset1-skip',
+		});
+
+		this._decrementDayButton.addHandler(this._parent.decrementDay);
 		leftSection.appendChild(this._decrementDayButton.getElement());
 
-		this._playButton = new Button({title: 'play', text: 'Play', icon: PlayIconURL});
-		this._playButton.setHandler(this._parent.play);
-//		this._playButton.addCSSClass('play-pause');
+		this._playButton = new Button({
+			title: 'play',
+			text: 'Play',
+			iconSrc: PlayIconURL,
+			specificClass: 'wgbh-asset1-play-pause',
+		});
+		this._playButton.addHandler(this._parent.play);
 		middleSection.appendChild(this._playButton.getElement());
 
-		this._pauseButton = new Button({title: 'pause', text: 'Pause', icon: PauseIconURL});
-		this._pauseButton.setHandler(this._parent.pause);
-//		this._pauseButton.addCSSClass('play-pause');
+		this._pauseButton = new Button({
+			title: 'pause',
+			text: 'Pause',
+			iconSrc: PauseIconURL,
+			specificClass: 'wgbh-asset1-play-pause',
+		});
+		this._pauseButton.addHandler(this._parent.pause);
 		middleSection.appendChild(this._pauseButton.getElement());
 
-		this._goToDay1Button = new Button({title: 'go to day 1', text: 'Go to Day 1', icon: undefined});
-		this._goToDay1Button.setHandler(this._parent.goToDay1);
+		this._goToDay1Button = new Button({
+			title: 'go to day 1',
+			text: 'Go to Day 1',
+			specificClass: 'wgbh-asset1-reset',
+		});
+		this._goToDay1Button.addHandler(this._parent.goToDay1);
 		middleSection.appendChild(this._goToDay1Button.getElement());
 
-		this._incrementHourButton = new Button({title: 'go forward one hour', text: '1 Hour', icon: SkipForwardOneHourURL});
-		this._incrementHourButton.setHandler(this._parent.incrementHour);
-//		this._incrementHourButton.addCSSClass('increment-decrement');
+		this._incrementHourButton = new Button({
+			title: 'go forward one hour',
+			text: '1 Hour',
+			iconSrc: SkipForwardOneHourURL,
+			specificClass: 'wgbh-asset1-skip',
+		});
+		this._incrementHourButton.addHandler(this._parent.incrementHour);
 		rightSection.appendChild(this._incrementHourButton.getElement());
 
-		this._incrementDayButton = new Button({title: 'go forward one day', text: '1 Day', icon: SkipForwardOneDayURL});
-		this._incrementDayButton.setHandler(this._parent.incrementDay);
-//		this._incrementDayButton.addCSSClass('increment-decrement');
+		this._incrementDayButton = new Button({
+			title: 'go forward one day',
+			text: '1 Day',
+			iconSrc: SkipForwardOneDayURL,
+			specificClass: 'wgbh-asset1-skip',
+		});
+		this._incrementDayButton.addHandler(this._parent.incrementDay);
 		rightSection.appendChild(this._incrementDayButton.getElement());
 
 		this.setMode(this.MODE_ALL_ENABLED);
 	}
 
-
 	getElement() {
 		return this._element;
 	}
 
-
 	getHeight() {
 		return this._element.clientHeight;
 	}
+
+
 
 	setMode(arg) {
 

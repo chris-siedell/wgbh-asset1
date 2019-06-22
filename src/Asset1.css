@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-10
+2019-06-21
 */
 
 
@@ -26,6 +26,11 @@ astro.unl.edu
 	box-sizing: border-box;
 }
 
+
+/*
+**	Info Panel
+*/
+
 .wgbh-asset1-infopanel {
 	width: 100%;
 
@@ -43,6 +48,7 @@ astro.unl.edu
 
 	font-family: "Muli", sans-serif;
 	font-weight: 800;
+
 	
 	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
 	font-size: 3vw;
@@ -51,39 +57,24 @@ astro.unl.edu
 }
 
 
+/*
+**	Control Panel
+*/
+
 .wgbh-asset1-controlpanel {
 	width: 100%;
 
 	margin: 0;
 
+	padding: 4rem 0 8rem 0;
 	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-	padding: 0.7vw 0 1.5vw 0;
+/*	padding: 0.7vw 0 1.5vw 0;*/
 	
 	display: flex;
 	flex-direction: row;
 }
 
 
-.wgbh-asset1-controlpanel button img {
-	display: inline-block;
-	vertical-align: middle;
-	
-	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-	height: 2vw;
-	margin: 0.6vw 1vw 0.6vw 1vw;
-}
-
-	
-.wgbh-asset1-controlpanel button div {
-	display: inline-block;
-	vertical-align: middle;
-
-	font-family: "Muli", sans-serif;
-	font-weight: 600;
-
-	/* Assumption: control panel scales linearly with viewport width. TODO: try JS and attr(). */
-	font-size: 1.8vw;
-}
 
 
 .wgbh-asset1-controlpanel button:disabled {
@@ -103,29 +94,6 @@ astro.unl.edu
 }
 
 
-.wgbh-asset1-controlpanel button {
-
-	width: 100%;
-
-	display: block;
-
-	border: none;
-
-	color: black;
-
-	cursor: pointer;
-
-	min-height: 48px;
-
-	margin: 16px 0;
-	
-	padding: 0;
-
-  border-radius: 14px;
-
-  background-color: #ffe61e;
-	box-shadow: 0 4px 0 0 #ffba09;
-}
 
 
 .wgbh-asset1-controlpanel-side {
@@ -140,9 +108,80 @@ astro.unl.edu
 	padding: 0;
 }
 
+
 .wgbh-asset1-controlpanel button:not([disabled]):active {
 	transform: translateY(4px);
 	box-shadow: none;
 }
+
+
+/*
+**	Button
+*/
+
+.wgbh-asset1-button {
+	font-family: "Muli", sans-serif;
+	font-weight: 600;
+	display: block;
+	border: none;
+	color: black;
+	cursor: pointer;
+  border-radius: 14px;
+  background-color: #ffe61e;
+	box-shadow: 0 4px 0 0 #ffba09;
+}
+
+.wgbh-asset1-button div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	padding:0;
+	height: 100%;
+	line-height: 1;
+/*	background-color: rgba(255, 255, 255, 0.3);*/
+}
+
+.wgbh-asset1-button img {
+	display: inline-block;
+	margin: 0 0.5rem 0 0;
+	height: 0.8em;
+/*	background-color: rgba(0, 0, 255, 0.3);*/
+}
+	
+.wgbh-asset1-button span {
+	padding: 0.1em 0 0 0;
+	margin: 0;
+/*	background-color: rgba(255, 0, 0, 0.3);*/
+}
+
+/*
+**	Specific Buttons
+*/
+
+.wgbh-asset1-skip {
+	margin: 1rem auto;
+	font-size: 1.4rem;
+	padding: 0.2rem;
+	height: 2.2rem;
+	width: 10rem;
+}
+
+.wgbh-asset1-play-pause {
+	margin: 2rem auto;
+	font-size: 2.2rem;
+	padding: 0.2rem;
+	height: 4rem;
+	width: 13rem;
+}
+
+.wgbh-asset1-reset {
+	margin: 1rem auto;
+	font-size: 1rem;
+	padding: 0.2rem;
+	height: 1.7rem;
+	width: 9rem;
+}
+
 
 

@@ -21,8 +21,6 @@ import ForegroundImage_8_URL from './graphics/playground_sandbox.svg';
 
 
 export var SkyDiagramParams = {
- "width": 836,
- "height": 736,
  "horizon": 0.14999999999999997,
  "peak": 0.7150000000000002,
  "margin": 0.02999999999999999,

@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-19
+2019-06-20
 */
 
 
@@ -79,7 +79,9 @@ export class Asset1 {
 		this._root.classList.add('wgbh-asset1-root');
 
 		this._diagram = new SkyDiagram();
-		this._root.appendChild(this._diagram.getElement());
+		let diagramElement = this._diagram.getElement();
+		diagramElement.classList.add('wgbh-asset1-center');
+		this._root.appendChild(diagramElement);
 
 		this._infoPanel = new InfoPanel();
 		this._root.appendChild(this._infoPanel.getElement());
@@ -87,15 +89,6 @@ export class Asset1 {
 		this._controlPanel = new ControlPanel(this);
 		this._root.appendChild(this._controlPanel.getElement());
 
-		// Load sky diagram settings.
-		let diagramSettings = SkyDiagramParams;
-		if (diagramSettings.hasOwnProperty('width')) {
-			delete diagramSettings.width;
-		}
-		if (diagramSettings.hasOwnProperty('height')) {
-			delete diagramSettings.height;
-		}
-		this._diagram.setParams(diagramSettings);
 
 		// _isPlaying signifies that the simulation is running continuously.
 		this._isPlaying = false;
@@ -110,21 +103,31 @@ export class Asset1 {
 
 
 		this._minSkyDiagramAspectRatio = 1.3;
-		this._maxSkyDiagramAspectRatio = Number.POSITIVE_INFINITY; // 2.5 TODO
+		this._maxSkyDiagramAspectRatio = 2.5;
 		
 		let bb = this._root.getBoundingClientRect();
 		this._width = bb.width;
 		this._height = bb.height;
 
+		// Internal update flags.
+		this._needs_redoLayout = true;
+		this._needs_X = true;
+		this._needs_updateDiagram = true;
+		this._needs_recalcAnimPlayingParams = true;
 
-		this.setSecondsPerCalendarPeriod(180);
+		let initDiagramParams = SkyDiagramParams;
+		let initParams = {
+			diagramParams: initDiagramParams,
+			secondsPerCalendarPeriod: 180,
+		};
+
+		this.setParams(initParams);
 
 		this._setTime(134.1 * this._ATU_PER_HOUR);
 
 		this._animFrameHandler = this._animFrameHandler.bind(this);
-
-
 	}
+
 
 	getTimeOfDayName(timeOfDay) {
 
@@ -185,6 +188,8 @@ export class Asset1 {
 			console.error('Invalid argument passed to internal _setTime method.');
 			return;
 		}
+
+		this._needs_X = true;
 
 		this._time = ( Math.round(arg) % this._TIME_CYCLE + this._TIME_CYCLE)%this._TIME_CYCLE;
 
@@ -332,21 +337,6 @@ export class Asset1 {
 	}
 
 
-	_recalcAnimPlayingParams() {
-		// Call this whenever playing is about to start or when the animation
-		//	rate (secondsPerCalendarPeriod) has changed.
-
-		if (!this._isPlaying) {
-			return;
-		}
-
-		this._animPlayingInitTime = this._time;
-		this._animPlayingInitClock = undefined;
-		this._animPlayingATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
-		this._animPlayingMSPerTimeCycle = this._TIME_CYCLE / this._animPlayingATUPerMS;
-	}
-
-
 	_animFrameHandler(clock) {
 
 		if (this._isPlaying) {
@@ -359,7 +349,7 @@ export class Asset1 {
 			let clockDelta = (clock - this._animPlayingInitClock)%this._animPlayingMSPerTimeCycle;
 			let timeDelta = clockDelta * this._animPlayingATUPerMS;
 			this._setTime(this._animPlayingInitTime + timeDelta);
-			this._update();
+			this.update();
 		
 			this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
 
@@ -381,7 +371,7 @@ export class Asset1 {
 
 				let timeDelta = u * this._animTransitionTimeDelta;
 				this._setTime(this._animTransitionInitTime + timeDelta);
-				this._update();
+				this.update();
 				
 				this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
 
@@ -393,87 +383,192 @@ export class Asset1 {
 				this._animFrameID = undefined;
 
 				this._setTime(this._animTransitionFinalTime);
-				this._update();
+				this.update();
 			}
 
 		}
 	}
 
 
-	getSecondsPerCalendarPeriod() {
-		return this._secondsPerCalendarPeriod;
-	}
-
-	setSecondsPerCalendarPeriod(arg) {
-		this._secondsPerCalendarPeriod = arg;
-		this._recalcAnimPlayingParams();
-	}
-
-
+//	getSecondsPerCalendarPeriod() {
+//		return this._secondsPerCalendarPeriod;
+//	}
+//
+//	setSecondsPerCalendarPeriod(arg) {
+//		this._secondsPerCalendarPeriod = arg;
+//		this._recalcAnimPlayingParams();
+//	}
 
 	getElement() {
 		return this._root;
 	}
 
-	getParams() {
-		return this._diagram.getParams();
+	setParams(params) {
+		// Note: some properties of the params.diagramParams object may be deleted.
+
+		if (params.hasOwnProperty('diagramParams')) {
+
+			// Some SkyDiagram params are controlled by the sim and are not allowed
+			//	to pass through.
+
+			let diagramParams = params.diagramParams;		
+
+			if (diagramParams.hasOwnProperty('width')) {
+				delete diagramParams.width;
+			}
+
+			if (diagramParams.hasOwnProperty('height')) {
+				delete diagramParams.height;
+			}
+
+			if (diagramParams.hasOwnProperty('sunPosition')) {
+				delete diagramParams.sunPosition;
+			}
+
+			if (diagramParams.hasOwnProperty('moonPosition')) {
+				delete diagramParams.moonPosition;
+			}
+
+			if (diagramParams.hasOwnProperty('sunSize')) {
+				delete diagramParams.sunSize;
+			}
+
+			if (diagramParams.hasOwnProperty('moonSize')) {
+				delete diagramParams.moonSize;
+			}
+
+			this._diagram.setParams(diagramParams);
+
+			this._needs_updateDiagram = true;
+		}
+
+		if (params.hasOwnProperty('secondsPerCalendarPeriod')) {
+			this._secondsPerCalendarPeriod = this._validateNumberWithRange(params.secondsPerCalendarPeriod, 20, 1000, 'secondsPerCalendarPeriod');
+			this._needs_recalcAnimPlayingParams = true;
+		}
+
+		if (params.hasOwnProperty('width')) {
+			this._width = this._validateNumberWithRange(params.width, 200, 5000, 'width');
+			this._needs_redoLayout = true;
+		}
+
+		if (params.hasOwnProperty('height')) {
+			this._height = this._validateNumberWithRange(params.height, 200, 5000, 'height');
+			this._needs_redoLayout = true;
+		}
 	}
 
-	setParams(params) {
-
-		if (params.width !== undefined || params.height !== undefined) {
-
-			let w = params.width || this._width;
-			let h = params.height || this._height;
-
-			this._root.style.width = w + 'px';
-			this._root.style.height = h + 'px';
-
-			let iph = this._infoPanel.getHeight();
-			let cph = this._controlPanel.getHeight();
-	
-			let skyParams = {
-				width: w,
-				height: h - iph - cph,
-			};
-
-			let ratio = skyParams.width / skyParams.height;
-			if (ratio < this._minSkyDiagramAspectRatio) {
-				skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
-			} else if (ratio > this._maxSkyDiagramAspectRatio) {
-				// TODO -- need to fix CSS
-			}
-	
-			this._diagram.setParams(skyParams);
-
-			this._width = w;
-			this._height = h;
+	_validateNumberWithRange(arg, min, max, name) {
+		if (typeof arg !== 'number') {
+			arg = parseFloat(arg);
 		}
-				
+		if (Number.isNaN(arg) || !Number.isFinite(arg)) {
+			throw new Error(name + ' must be a finite number.');
+		}
+		if (arg < min) {
+			arg = min;
+		}
+		if (arg > max) {
+			arg = max;
+		}
+		return arg;
+	}
+
+
+	/*
+	**	Internal Update Sub-Methods
+	*/
+
+	_redoLayout() {
+
+		// Call when width or height have changed.
+
+		this._needs_updateDiagram = true;
+
+		this._root.style.width = this._width + 'px';
+		this._root.style.height = this._height + 'px';
+
+		let iph = this._infoPanel.getHeight();
+		let cph = this._controlPanel.getHeight();
+	
+		let skyParams = {
+			width: this._width,
+			height: this._height - iph - cph,
+		};
+
+		let ratio = skyParams.width / skyParams.height;
+		if (ratio < this._minSkyDiagramAspectRatio) {
+			skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
+		} else if (ratio > this._maxSkyDiagramAspectRatio) {
+			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
+			// TODO -- need to fix CSS
+		}
+
+		console.log("aspect ratio: "+ratio+", "+skyParams.width+", "+skyParams.height);
+	
+		this._diagram.setParams(skyParams);
+	
+		this._needs_redoLayout = false;
+	}
+
+	_recalcAnimPlayingParams() {
+		// Call this whenever playing is about to start or when the animation
+		//	rate (secondsPerCalendarPeriod) has changed.
+		// It is safe to call this when not playing, even though it won't do
+		//	anything -- calculating is defered until playing starts.
+		if (this._isPlaying) {
+			this._animPlayingInitTime = this._time;
+			this._animPlayingInitClock = undefined;
+			this._animPlayingATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
+			this._animPlayingMSPerTimeCycle = this._TIME_CYCLE / this._animPlayingATUPerMS;
+		}
+		this._needs_recalcAnimPlayingParams = false;
 	}
 
 
 	update() {
-		this._update();
-	}
 
-	_update() {
+		if (this._needs_redoLayout) {
+			this._redoLayout();
+		}
+
+		if (this._needs_recalcAnimPlayingParams) {
+			this._recalcAnimPlayingParams();
+		}
+
+		if (this._needs_X) {
+			this._X();
+		}
+
+		if (this._needs_updateDiagram) {
+			this._diagram.update();
+			this._needs_updateDiagram = false;
+		}
+	}
+	
+
+	_X() {
+
+		this._needs_updateDiagram = true;
 
 		let skyParams = {};
 		skyParams.sunPosition = this._timeOfDay - 0.25;
 		skyParams.moonPosition = skyParams.sunPosition - this._moonPhase;
+		this._diagram.setParams(skyParams);
 
 		let info = {};
 		info.day = 'Day ' + this._calendarDay;
 		info.timeOfDay = this.getTimeOfDayName(this._timeOfDay);
 		info.phaseName = this.getMoonPhaseName(this._moonPhase);
-
 		this._infoPanel.setInfo(info);
 
-		this._diagram.setParams(skyParams);
-		this._diagram.update();
+		this._needs_X = false;
 	}
-	
+
+
+	/*
+	**	Misc
+	*/
 
 	_removeAllChildren(element) {
 	  while (element.firstChild) {
