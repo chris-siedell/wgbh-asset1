@@ -2,8 +2,11 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-22
+2019-06-23
 */
+
+
+/* Note: media queries are at bottom. */
 
 
 .wgbh-asset1-root {
@@ -12,20 +15,22 @@ astro.unl.edu
 	-ms-user-select: none;
 	user-select: none;
 
-	overflow: hidden;
+	width: 100%;
+	height: 100%;
 
 	padding: 0;
 	margin: 0;
-
+	
 	background-color: black;
 	border: none;
 	box-sizing: border-box;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	/* Additional properties set in media queries. */
 }
-
-
-/*
-**	Sky Diagram
-*/
 
 
 /*
@@ -41,7 +46,8 @@ astro.unl.edu
 
 .wgbh-asset1-infopanel div {
 	display: inline-block;
-	width: 30%;
+	width: 50%;
+	white-space: nowrap;
 	font-family: "Muli", sans-serif;
 	font-weight: 800;
 	font-size: 2rem;
@@ -86,23 +92,23 @@ astro.unl.edu
 	margin: 0;
 }
 
-.wgbh-asset1-controlpanel button:not([disabled]):active {
+.wgbh-asset1-button:not([disabled]):active {
 	transform: translateY(4px);
 	box-shadow: none;
 }
 
-.wgbh-asset1-controlpanel button:disabled {
+.wgbh-asset1-button:disabled {
 	opacity: 0.6;
 	cursor: default;
 }
 
-.wgbh-asset1-controlpanel button:focus {
+.wgbh-asset1-button:focus {
 	outline: 6px solid white;
 	outline-offset: 3px;
 	border: none;
 }
 
-.wgbh-asset1-controlpanel button::-moz-focus-inner {
+.wgbh-asset1-button::-moz-focus-inner {
 	border: none;
 }
 
@@ -111,17 +117,7 @@ astro.unl.edu
 **	Specific Buttons
 */
 
-.wgbh-asset1-skip {
-/*	margin: 0 auto 1.2rem auto;*/
-	margin: 0.6rem 0.4rem;
-	font-size: 1.4rem;
-	padding: 0.2rem;
-	height: 2.2rem;
-	width: 9rem;
-}
-
 .wgbh-asset1-play-pause {
-/*	margin: 0 auto 2rem auto;*/
 	margin: 1rem 0.8rem;
 	font-size: 2.2rem;
 	padding: 0.2rem;
@@ -129,9 +125,19 @@ astro.unl.edu
 	width: 13rem;
 }
 
+/* DO NOT CHANGE the skip button's width or left/right margins without first
+	reading the Control Panel Layout comments. Changing these values will require
+	multiple changes elsewhere. */
+.wgbh-asset1-skip {
+	margin: 0.6rem 0.4rem;
+	font-size: 1.4rem;
+	padding: 0.2rem;
+	height: 2.2rem;
+	width: 9rem;
+}
+
 .wgbh-asset1-reset {
-	/*margin: 0 auto 1.2rem auto;*/
-	margin: 0;
+	margin: 0.6rem 0.4rem;
 	font-size: 1rem;
 	padding: 0.2rem;
 	height: 1.7rem;
@@ -139,165 +145,256 @@ astro.unl.edu
 }
 
 
-
 /*
-**	Control Panel
+
+=== General Layout ===
+
+There are two general layouts: stacked and sideways. Generally speaking, stacked is for desktop
+	browsers or portrait on mobile, and sideways is for landscape on mobile. (Viewport width and
+	aspect ratio are used to decide between them, not orientation.)
+
+Stacked Layout:
+	+---------------+
+	|               |
+	|  Sky Diagram  |
+	|               |
+	+---------------+
+	|  Info Panel   |
+	+---------------+
+	| Control Panel |
+	|               |
+	+---------------+
+
+Sideways Layout:
+	+-------------+---------------+
+	|             |  Info Panel   |
+	|     Sky     +---------------+
+	|   Diagram   | Control Panel |
+	|             |               |
+	+-------------+---------------+
+
+In the Sideways Layout the Info and Control Panels are always 20rem wide. In both layouts the
+	component code determines the dimensions of the Sky Diagram.
+
+
+=== Control Panel Layout ===
+
+The control panel contains the buttons and options.
+
+The minimum control panel width is determined by the skip buttons:
+		<minimum control panel width> = 2*<skip width> + 4*<skip left/right margin>
+So 2*9rem + 4*0.4rem = 19.6rem, which rounds up to 20rem, which is 320px 
+	at 16px per rem (convenient for iPhones).
+
+Containers:
+	controlpanel:
+		-	primary:
+			+ top: play/pause buttons
+			+ left: decrement skip buttons
+			+ right: increment skip buttons
+		- bottom: go to day 1 button
+
+There are two distinct control panel layouts: narrow and wide. Which is selected depends
+	on two factors: the viewport width and the aspect ratio.
+
+Narrow Control Panel - for narrow viewports in Stacked Layout, or any viewport in Sideways Layout.
+Wide Control Panel - for wide viewports in Stacked Layout.
+
+*/
+
+.wgbh-asset1-controlpanel {
+	width: 100%;
+	margin: 0 auto;
+	padding: 0;
+}
+
+.wgbh-asset1-controlpanel-primary {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+
+.wgbh-asset1-controlpanel-top {
+	display: block;
+	margin: 0; 
+	padding: 0;
+}
+
+.wgbh-asset1-controlpanel-left {
+	display: inline-block;
+	margin: 0 auto;
+	padding: 0;
+}
+
+.wgbh-asset1-controlpanel-right {
+	display: inline-block;
+	margin: 0 auto;
+	padding: 0;
+}
+
+.wgbh-asset1-controlpanel-bottom {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+.wgbh-asset1-play-pause {
+	display: inline-block;
+}
+
+.wgbh-asset1-skip {
+	display: inline-block;
+}
+
+
+
+/* Debugging TODO: remove */
+/*
+.wgbh-asset1-controlpanel-top {
+	background-color: rgba(0, 255, 0, 0.3);
+}
+.wgbh-asset1-controlpanel-left {
+	background-color: rgba(255, 0, 0, 0.3);
+}
+.wgbh-asset1-controlpanel-right {
+	background-color: rgba(0, 0, 255, 0.3);
+}
 */
 
 
+/*
+DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) without also
+	changing the value in the window.matchMedia call in Asset1.js.
+*/
+
+@media (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
+
+	/*
+		Sideways Layout
+	*/
+
+	.wgbh-asset1-root {
+		min-width: 35rem;
+		min-height: 20rem;
+		flex-direction: row;
+	}
+
+	.wgbh-asset1-panels {
+		width: 20rem;
+	}
+}
 
 
+@media (max-aspect-ratio: 177/100) {
 
-@media (max-width: 44rem), (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
+	/*
+		Stacked Layout
+	*/
 	
-	.wgbh-asset1-controlpanel {
-		background-color: rgba(255, 255, 128, 0.5);
-		margin: 0 auto;
-		padding: 0;
+	.wgbh-asset1-root {
+		min-width: 20rem;
+		min-height: 30rem;
+		flex-direction: column;
+	}
+
+	.wgbh-asset1-panels {
 		width: 100%;
-		min-width: 20rem; /* 20rem = 320px / (16px/rem) -- iPhone 7 in portrait, zoomed display */
+	}
+}
+
+
+@media (max-width: 38rem), (width: 38rem), (min-aspect-ratio: 177/100), (aspect-ratio: 177/100) {
+	
+	/*
+		Narrow Control Panel
+
+		Three levels:
+			*-top (play/pause buttons)
+			*-left (decrement skip buttons), *-right (increment skip buttons)
+			*-bottom (go to day 1 button)
+	*/
+
+	.wgbh-asset1-controlpanel {
+		min-width: 20rem;
 	}
 	
 	.wgbh-asset1-controlpanel-primary {
-		width: 100%;
 		display: block;
-		text-align: center;
 	}
 	
 	.wgbh-asset1-controlpanel-top {
 		width: 100%;	
-		background-color: rgba(0, 255, 0, 0.3);
-		margin: 0; 
-		padding: 0;
 	}
 	
 	.wgbh-asset1-controlpanel-left {
-		background-color: rgba(255, 0, 0, 0.3);
-		width: 49%;
-		display: inline-block;
-		margin: 0 auto; 
-		padding: 0;
+		width: 50%;
 	}
 	
 	.wgbh-asset1-controlpanel-right {
-		background-color: rgba(0, 0, 255, 0.3);
-		width: 49%;
-		display: inline-block;
-		margin: 0 auto; 
-		padding: 0;
-	}
-	
-	.wgbh-asset1-controlpanel-bottom {
-		width: 100%;
-		margin: 0;
-		padding: 0 0 0.4rem 0;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
+		width: 50%;
 	}
 
-	.wgbh-asset1-play-pause {
-		display: inline-block;
-	}
 
-	.wgbh-asset1-skip {
-		display: inline-block;
+	/* Debugging TODO: remove */
+/*
+	.wgbh-asset1-controlpanel {
+		background-color: rgba(255, 255, 128, 0.5);
 	}
-
+*/
 }
 
 
+@media (min-width: 38rem) and (max-aspect-ratio: 177/100) {
 
-@media (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
-	.wgbh-asset1-panels {
-		position: absolute;
-		width: 20rem;
-		top: 0px;
-		left: calc(100% - 20rem);	
-	}
-	.wgbh-asset1-diagram {
-		position: absolute;
-	}
-}
+	/*
+		Wide Control Panel
 
-@media (max-aspect-ratio: 177/100) {
-	.wgbh-asset1-panels {
-		position: static;
-		width: 100%;
-	}
-	.wgbh-asset1-diagram {
-		position: static;
-	}
-}
-
-@media (min-width: 44rem) and (max-aspect-ratio: 177/100) {
+		Two levels:
+			*-left (decrement skip buttons), *-top (play/pause buttons), *-right (increment skip buttons)
+			*-bottom (go to day 1 button)
+	*/
 
 	.wgbh-asset1-controlpanel {
-		background-color: rgba(255, 255, 255, 0.3);
-		margin: 0 auto;
-		padding: 0;
-		width: 100%;
-		max-width: 68rem;
+		max-width: 62rem;
 	}
 	
 	.wgbh-asset1-controlpanel-primary {
-		width: 100%;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		text-align: center;
 	}
 	
 	.wgbh-asset1-controlpanel-left {
 		flex: 1 1 30%;
 		order: 1;
-		background-color: rgba(255, 0, 0, 0.3);
-		display: block;
-		margin: 0; 
-		padding: 0;
 	}
 	
 	.wgbh-asset1-controlpanel-top {
 		flex: 1 1 20%;
 		order: 2;
-		background-color: rgba(0, 255, 0, 0.3);
-		display: block;
-		margin: 0; 
-		padding: 0;
 	}
 	
 	.wgbh-asset1-controlpanel-right {
 		flex: 1 1 30%;
 		order: 3;
-		background-color: rgba(0, 0, 255, 0.3);
-		display: block;
-		margin: 0; 
-		padding: 0;
-	}
-	
-	.wgbh-asset1-controlpanel-bottom {
-		width: 100%;
-		margin: 0;
-		padding: 0 0 0.4rem 0;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-	}
-
-	.wgbh-asset1-play-pause {
-		display: inline-block;
-	}
-
-	.wgbh-asset1-skip {
-		display: inline-block;
 	}
 
 
+	/* Debugging TODO: remove */
+/*
+	.wgbh-asset1-controlpanel {
+		background-color: rgba(255, 255, 255, 0.3);
+	}
+*/
 }
+
+
 
 

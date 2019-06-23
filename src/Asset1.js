@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-20
+2019-06-23
 */
 
 
@@ -80,9 +80,7 @@ export class Asset1 {
 
 		this._diagram = new SkyDiagram();
 		let diagramElement = this._diagram.getElement();
-		diagramElement.classList.add('wgbh-asset1-diagram');
 		this._root.appendChild(diagramElement);
-
 
 		this._panels = document.createElement('div');
 		this._panels.classList.add('wgbh-asset1-panels');
@@ -94,6 +92,13 @@ export class Asset1 {
 		this._controlPanel = new ControlPanel(this);
 		this._panels.appendChild(this._controlPanel.getElement());
 
+		
+		this._minTransitionDurationMS = 250;
+		this._maxTransitionDurationMS = 1000;
+
+		this._minSkyDiagramAspectRatio = 1.3;
+		this._maxSkyDiagramAspectRatio = 2.3;
+		
 
 		// _isPlaying signifies that the simulation is running continuously.
 		this._isPlaying = false;
@@ -103,13 +108,6 @@ export class Asset1 {
 		//	time transitions (incrementing/decrementing) in addition to continuous playing.
 		this._animFrameID = undefined;
 
-		this._minTransitionDurationMS = 250;
-		this._maxTransitionDurationMS = 1000;
-
-
-		this._minSkyDiagramAspectRatio = 1.3;
-		this._maxSkyDiagramAspectRatio = 2.5;
-		
 		let bb = this._root.getBoundingClientRect();
 		this._width = bb.width;
 		this._height = bb.height;
@@ -120,13 +118,10 @@ export class Asset1 {
 		this._needs_updateDiagram = true;
 		this._needs_recalcAnimPlayingParams = true;
 
-		let initDiagramParams = SkyDiagramParams;
-		let initParams = {
-			diagramParams: initDiagramParams,
+		this.setParams({
+			diagramParams: SkyDiagramParams,
 			secondsPerCalendarPeriod: 180,
-		};
-
-		this.setParams(initParams);
+		});
 
 		this._setTime(134.1 * this._ATU_PER_HOUR);
 
@@ -415,35 +410,24 @@ export class Asset1 {
 
 			// Some SkyDiagram params are controlled by the sim and are not allowed
 			//	to pass through.
+			let strippedParams = ['width', 'height', 'sunPosition', 'moonPosition', 'sunSize', 'moonSize'];
 
-			let diagramParams = params.diagramParams;		
-
-			if (diagramParams.hasOwnProperty('width')) {
-				delete diagramParams.width;
+			for (const key of strippedParams) {
+				if (params.diagramParams.hasOwnProperty(key)) {
+					delete params.diagramParams[key];
+				}
 			}
 
-			if (diagramParams.hasOwnProperty('height')) {
-				delete diagramParams.height;
-			}
+			this._diagram.setParams(params.diagramParams);
 
-			if (diagramParams.hasOwnProperty('sunPosition')) {
-				delete diagramParams.sunPosition;
-			}
+			this._needs_updateDiagram = true;
+		}
 
-			if (diagramParams.hasOwnProperty('moonPosition')) {
-				delete diagramParams.moonPosition;
-			}
-
-			if (diagramParams.hasOwnProperty('sunSize')) {
-				delete diagramParams.sunSize;
-			}
-
-			if (diagramParams.hasOwnProperty('moonSize')) {
-				delete diagramParams.moonSize;
-			}
-
-			this._diagram.setParams(diagramParams);
-
+		if (params.hasOwnProperty('sunAndMoonSize')) {
+			this._diagram.setParams({
+				sunSize: params.sunAndMoonSize,
+				moonSize: params.sunAndMoonSize,
+			});
 			this._needs_updateDiagram = true;
 		}
 
@@ -453,12 +437,12 @@ export class Asset1 {
 		}
 
 		if (params.hasOwnProperty('width')) {
-			this._width = this._validateNumberWithRange(params.width, 200, 5000, 'width');
+			this._width = this._validateNumberWithRange(params.width, 100, 5000, 'width');
 			this._needs_redoLayout = true;
 		}
 
 		if (params.hasOwnProperty('height')) {
-			this._height = this._validateNumberWithRange(params.height, 200, 5000, 'height');
+			this._height = this._validateNumberWithRange(params.height, 100, 5000, 'height');
 			this._needs_redoLayout = true;
 		}
 	}
@@ -490,37 +474,41 @@ export class Asset1 {
 
 		this._needs_updateDiagram = true;
 
-		this._root.style.width = this._width + 'px';
-		this._root.style.height = this._height + 'px';
+		let rbb = this._root.getBoundingClientRect();
+		console.log(rbb.width+", "+rbb.height);
+		console.warn(this._width+", "+this._height);
 
-		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
-		console.log('useSidewaysLayout: '+useSidewaysLayout);
-
+//		this._root.style.width = this._width + 'px';
+//		this._root.style.height = this._height + 'px';
+//
 		let skyParams = {};
 
+		// The media query below must be identical to the one used in Asset1.css.
+		let useSidewaysLayout = window.matchMedia('(aspect-ratio: 177/100), (min-aspect-ratio: 177/100)').matches;
 		if (useSidewaysLayout) {
-		
+			// Sideways Layout
 			let bb = this._panels.getBoundingClientRect();
-			skyParams.width = this._width - bb.width;
-			skyParams.height = this._height;
-
+			skyParams.width = rbb.width - bb.width;
+			skyParams.height = rbb.height;
+//			skyParams.width = this._width - bb.width;
+//			skyParams.height = this._height;
 		} else {
-	
+			// Stacked Layout
 			let iph = this._infoPanel.getHeight();
 			let cph = this._controlPanel.getHeight();
-
-			skyParams.width =  this._width;
-			skyParams.height = this._height - iph - cph;
-
+			skyParams.width =  rbb.width;
+			skyParams.height = rbb.height - iph - cph;
+//			skyParams.width =  this._width;
+//			skyParams.height = this._height - iph - cph;
 		}
 	
-			let ratio = skyParams.width / skyParams.height;
-			if (ratio < this._minSkyDiagramAspectRatio) {
-				skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
-			} else if (ratio > this._maxSkyDiagramAspectRatio) {
-				skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
-			}
-			console.log("diagram aspect ratio: "+ratio+", "+skyParams.width+", "+skyParams.height);
+		let ratio = skyParams.width / skyParams.height;
+		if (ratio < this._minSkyDiagramAspectRatio) {
+			skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
+		} else if (ratio > this._maxSkyDiagramAspectRatio) {
+			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
+		}
+
 		this._diagram.setParams(skyParams);
 	
 		this._needs_redoLayout = false;
@@ -607,8 +595,8 @@ export class Asset1 {
 
 const COMPONENT = Asset1;
 const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.3.0';
-const BUILD_DATE_STR = '2019-06-19';
+const VERSION_STR = '0.4.X';
+const BUILD_DATE_STR = '2019-06-23';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {
