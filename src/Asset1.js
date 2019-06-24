@@ -2,12 +2,13 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-23
+2019-06-24
 */
 
 
 import './Asset1.css';
 
+import LunarTimekeeper from 'LunarTimekeeper.js';
 import SkyDiagram from 'SkyDiagram.js';
 
 import {SkyDiagramParams} from './SkyDiagramParams/SkyDiagramParams.js';
@@ -28,53 +29,12 @@ export class Asset1 {
 		this.play = this.play.bind(this);
 		this.pause = this.pause.bind(this);
 		this.goToDay1 = this.goToDay1.bind(this);
+		this.update = this.update.bind(this);
 
-		
-		// The official timekeeping property of the simulation is _time. This variable is assigned
-		//	only in _setTime() -- see the comments there for more information about _time and the
-		//	properties derived from it.
+		this._timekeeper = new LunarTimekeeper({calendarPeriodInDays: 30});
+		this._timekeeper.setTime({calendarDay: 6, fractionalTimeOfDay: 0.5875});
+		this._timekeeper.setChangeCallback(this.update);
 
-		// All of the time related constants below MUST be integers, unless otherwise indicated.
-
-		// Unless otherwise indicated in the property name, all of these constants are defined in
-		//	ATUs -- atomic time units. See _setTime() for more details.
-		
-		// The ATU must be a common divisor of a day, all other increment and decrement quantities,
-		//	and the calendar and synodic periods. It must also be small enough to allow smooth control
-		//	over the animation rate. However, it can not be so small that 2*_TIME_CYCLE is larger
-		//	than Number.MAX_SAFE_INTEGER (check console output for an error message).
-		this._ATU_PER_HOUR = 3600;
-		this._ATU_PER_DAY = 24 * this._ATU_PER_HOUR;
-
-		// The displayed calendar day will be an integer in the interval [1, _CALENDAR_PERIOD_IN_DAYS].
-		this._CALENDAR_PERIOD_IN_DAYS = 30; // this must be an integer
-		this._CALENDAR_PERIOD = this._CALENDAR_PERIOD_IN_DAYS * this._ATU_PER_DAY;
-		
-		// Set the synodic period to be equal to the calendar period to achieve a perfect
-		//	loop -- otherwise, the phases will drift within the calendar.
-		this._SYNODIC_PERIOD_IN_DAYS = this._CALENDAR_PERIOD_IN_DAYS; // this may be fractional
-		this._SYNODIC_PERIOD = Math.round(this._SYNODIC_PERIOD_IN_DAYS * this._ATU_PER_DAY);
-
-		// The synodic offset determines how the synodic cycle aligns with the calendar. A value
-		//	of 12 hours has the new moon occur at noon on the first calendar day.
-		this._SYNODIC_OFFSET = 12 * this._ATU_PER_HOUR;
-
-		// _TIME_CYCLE must contain an integer number of both synodic and calendar periods (in ATUs).
-		//	It must also be less than half of Number.MAX_SAFE_INTEGER to avoid integer overflow and to
-		//	allow for modular arithmetic.
-		this._TIME_CYCLE = this._SYNODIC_PERIOD * this._CALENDAR_PERIOD;
-		if ((2 * this._TIME_CYCLE) > Number.MAX_SAFE_INTEGER) {
-			// If this happens make the ATU longer (i.e. fewer ATUs per day).
-			console.error('TIME_CYCLE is greater than MAX_SAFE_INTEGER.');
-		}
-
-//		console.log("ATU_PER_HOUR: "+this._ATU_PER_HOUR);
-//		console.log("CALENDAR_PERIOD: "+this._CALENDAR_PERIOD);
-//		console.log("SYNODIC_PERIOD: "+this._SYNODIC_PERIOD);
-//		console.log("TIME_CYCLE: "+this._TIME_CYCLE);
-//		console.log("MAX_SAFE_INTEGER: "+Number.MAX_SAFE_INTEGER);
-	
-		
 		this._root = document.createElement('div');
 		this._root.classList.add('wgbh-asset1-root');
 
@@ -92,312 +52,59 @@ export class Asset1 {
 		this._controlPanel = new ControlPanel(this);
 		this._panels.appendChild(this._controlPanel.getElement());
 
-		
-		this._minTransitionDurationMS = 250;
-		this._maxTransitionDurationMS = 1000;
-
 		this._minSkyDiagramAspectRatio = 1.3;
 		this._maxSkyDiagramAspectRatio = 2.3;
-		
 
-		// _isPlaying signifies that the simulation is running continuously.
-		this._isPlaying = false;
-
-		// If _animFrameID is defined it means there's a queued request for an animation frame
-		//	callback -- that is, there's an animation in progress. Animations are used for
-		//	time transitions (incrementing/decrementing) in addition to continuous playing.
-		this._animFrameID = undefined;
-
-		let bb = this._root.getBoundingClientRect();
-		this._width = bb.width;
-		this._height = bb.height;
+//		let bb = this._root.getBoundingClientRect();
+//		this._width = bb.width;
+//		this._height = bb.height;
 
 		// Internal update flags.
 		this._needs_redoLayout = true;
-		this._needs_X = true;
 		this._needs_updateDiagram = true;
-		this._needs_recalcAnimPlayingParams = true;
 
 		this.setParams({
 			diagramParams: SkyDiagramParams,
-			secondsPerCalendarPeriod: 180,
 		});
-
-		this._setTime(134.1 * this._ATU_PER_HOUR);
-
-		this._animFrameHandler = this._animFrameHandler.bind(this);
 	}
 
 
-	getTimeOfDayName(timeOfDay) {
-
-		timeOfDay = (timeOfDay%1 + 1)%1;
-
-		if (timeOfDay < 0.25) {
-			return 'Nighttime';
-		} else if (timeOfDay <= 0.75) {
-			return 'Daytime';
-		} else {
-			return 'Nighttime';
-		}
-	}
-
-	getMoonPhaseName(moonPhase) {
-
-		moonPhase = (moonPhase%1 + 1)%1;
-
-		let newDelta = 0.02;
-		let quarterDelta = 0.02;
-		let fullDelta = 0.05;
-
-		if (moonPhase < newDelta) {
-			return 'New Moon';
-		} else if (moonPhase < 0.25 - quarterDelta) {
-			return 'Waxing Crescent';
-		} else if (moonPhase < 0.25 + quarterDelta) {
-			return 'First Quarter';
-		} else if (moonPhase < 0.5 - fullDelta) {
-			return 'Waxing Gibbous';
-		} else if (moonPhase < 0.5 + fullDelta) {
-			return 'Full Moon';
-		} else if (moonPhase < 0.75 - quarterDelta) {
-			return 'Waning Gibbous';
-		} else if (moonPhase < 0.75 + quarterDelta) {
-			return 'Third Quarter';
-		} else if (moonPhase < 1 - newDelta) {
-			return 'Waning Crescent';
-		} else {
-			return 'New Moon';
-		}
-	}
-
-	
-
-
-	_setTime(arg) {
-
-		// This method is the only place where _time should be changed.
-
-		// _time is expressed as an integer number of atomic time units (ATU). It must be kept an
-		//	integer to avoid unexpected numerical precision issues (e.g. clicking the hour increment
-		//	button 24 times but not having the day change).
-		// _time must be kept in the interval [0, _TIME_CYCLE) to avoid integer overflow.
-		// By definition, _time = 0 corresponds to midnight on the first calendar day.
-
-		if (typeof arg !== 'number' || !Number.isFinite(arg)) {
-			console.error('Invalid argument passed to internal _setTime method.');
-			return;
-		}
-
-		this._needs_X = true;
-
-		this._time = ( Math.round(arg) % this._TIME_CYCLE + this._TIME_CYCLE)%this._TIME_CYCLE;
-
-		// _moonPhase is a rational number in [0, 1), where
-		//	0.0  = new moon,
-		//	0.25 = first quarter,
-		//	0.5  = full moon, and
-		//	0.75 = third quarter.
-		this._moonPhase = (( (this._time - this._SYNODIC_OFFSET) / this._SYNODIC_PERIOD )%1 + 1)%1;
-
-		// n is the integer number of zero-based days up to the given _time within the cycle.
-		// r is the remaining number of ATUs within the zero-based day given by _time.
-		let n = Math.floor(this._time / this._ATU_PER_DAY);
-		let r = this._time - n*this._ATU_PER_DAY;	
-		
-		// _calendarDay is an integer in [1, _CALENDAR_PERIOD_IN_DAYS].
-		this._calendarDay = 1 + ((n % this._CALENDAR_PERIOD_IN_DAYS) + this._CALENDAR_PERIOD_IN_DAYS)%this._CALENDAR_PERIOD_IN_DAYS;
-		
-		// _timeOfDay is a rational number in [0, 1), where
-		// 	0.0  = midnight,
-		//	0.25 = 6am,
-		//	0.5  = noon, and
-		//	0.76 = 6pm.
-		this._timeOfDay = r / this._ATU_PER_DAY;
-			
-//		console.log("");
-//		console.log("            time: "+this._time);
-//		console.log("       moonPhase: "+this._moonPhase);
-//		console.log("     calendarDay: "+this._calendarDay);
-//		console.log("       timeOfDay: "+this._timeOfDay);
-	}
-
-
-	_setTimeByDelta(delta) {
-		// This helper function is for use by the increment and decrement methods.
-		
-		if (this._animFrameID !== undefined) {
-			console.warn('Can not change time while animating.');
-			return;
-		}
-		
-		this._controlPanel.setMode(this._controlPanel.MODE_ALL_DISABLED);
-
-		// Calculate the transition params and start the animation.
-
-		this._animTransitionInitTime = this._time;
-		this._animTransitionInitClock = undefined;
-		this._animTransitionTimeDelta = delta;
-		this._animTransitionFinalTime = this._time + delta;
-
-
-		if (Math.abs(delta) < 12 * this._ATU_PER_HOUR) {
-			//console.log("short transition");
-			this._animTransitionDurationMS = this._minTransitionDurationMS;
-		} else {
-			//console.log("long transition");
-			this._animTransitionDurationMS = this._maxTransitionDurationMS;
-		}
-
-		//console.log("init clock: "+this._animTransitionInitClock);
-
-		this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
-	}
-
+	/*
+	**	Button Handlers
+	*/
 
 	decrementDay() {
-		this._setTimeByDelta(-this._ATU_PER_DAY);
+		this._timekeeper.setTimeByDelta({day: -1});
 	}
 
 	decrementHour() {
-		this._setTimeByDelta(-this._ATU_PER_HOUR);	
+		this._timekeeper.setTimeByDelta({hour: -1});
 	}
 
 	incrementHour() {
-		this._setTimeByDelta(this._ATU_PER_HOUR);	
+		this._timekeeper.setTimeByDelta({hour: 1});
 	}
 
 	incrementDay() {
-		this._setTimeByDelta(this._ATU_PER_DAY);	
+		this._timekeeper.setTimeByDelta({day: 1});
 	}
 
 	play() {
-		this.setIsPlaying(true);		
+		this._timekeeper.setIsPlaying(true);
 	}
 
 	pause() {
-		this.setIsPlaying(false);
+		this._timekeeper.setIsPlaying(false);
 	}
 
 	goToDay1() {
-		this._setTime(12 * this._ATU_PER_HOUR);
-		this.update();
-	}
-
-	getIsPlaying() {
-		return this._isPlaying;
-	}
-
-	setIsPlaying(arg) {
-
-		arg = Boolean(arg);
-
-		if (arg) {
-			// To start playing:
-			//	- the sim must not be playing already, and
-			//	- there must be no other animation (e.g. a transition).
-			if (this._isPlaying) {
-				console.warn('Can not start playing when already playing.');
-				return;
-			}
-			if (this._animFrameID !== undefined) {
-				console.warn('Can not start playing while animating.');
-				return;
-			}
-		} else {
-			// To pause playing:
-			//	- the sim must be playing.
-			if (!this._isPlaying) {
-				console.warn('Can not pause unless playing.');
-				return;
-			}	
-		}
-
-		//console.log('Will set is playing: '+arg);
-
-		this._isPlaying = arg;
-		
-		if (this._isPlaying) {
-			// Start playing.
-
-			this._controlPanel.setMode(this._controlPanel.MODE_PAUSE_ENABLED);
-
-			this._recalcAnimPlayingParams();
-
-			this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
-
-		} else {
-			// Pause playing.
-			
-			this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
-
-			window.cancelAnimationFrame(this._animFrameID);
-			this._animFrameID = undefined;
-		}
+		this._timekeeper.setTime({calendarDay: 1, fractionalTimeOfDay: 0.5});
 	}
 
 
-	_animFrameHandler(clock) {
-
-		if (this._isPlaying) {
-			// Continuous playing.
-
-			if (this._animPlayingInitClock === undefined) {
-				this._animPlayingInitClock = clock;
-			}
-
-			let clockDelta = (clock - this._animPlayingInitClock)%this._animPlayingMSPerTimeCycle;
-			let timeDelta = clockDelta * this._animPlayingATUPerMS;
-			this._setTime(this._animPlayingInitTime + timeDelta);
-			this.update();
-		
-			this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
-
-		} else {
-			// Temporary transition.
-
-			if (this._animTransitionInitClock === undefined) {
-				this._animTransitionInitClock = clock;
-			}
-
-			// t goes linearly in clock time from 0 (start) to 1 (finish).
-			let t = (clock - this._animTransitionInitClock) / this._animTransitionDurationMS;
-
-			if (t < 1) {
-				// Transition is on-going.
-
-				// Using cubic easing.
-				let u = t*t*(3*(1 - t) + t);
-
-				let timeDelta = u * this._animTransitionTimeDelta;
-				this._setTime(this._animTransitionInitTime + timeDelta);
-				this.update();
-				
-				this._animFrameID = window.requestAnimationFrame(this._animFrameHandler);
-
-			} else {
-				// Transition is finished.
-				
-				this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
-
-				this._animFrameID = undefined;
-
-				this._setTime(this._animTransitionFinalTime);
-				this.update();
-			}
-
-		}
-	}
-
-
-//	getSecondsPerCalendarPeriod() {
-//		return this._secondsPerCalendarPeriod;
-//	}
-//
-//	setSecondsPerCalendarPeriod(arg) {
-//		this._secondsPerCalendarPeriod = arg;
-//		this._recalcAnimPlayingParams();
-//	}
+	/*
+	**
+	*/
 
 	getElement() {
 		return this._root;
@@ -407,19 +114,15 @@ export class Asset1 {
 		// Note: some properties of the params.diagramParams object may be deleted.
 
 		if (params.hasOwnProperty('diagramParams')) {
-
 			// Some SkyDiagram params are controlled by the sim and are not allowed
 			//	to pass through.
 			let strippedParams = ['width', 'height', 'sunPosition', 'moonPosition', 'sunSize', 'moonSize'];
-
 			for (const key of strippedParams) {
 				if (params.diagramParams.hasOwnProperty(key)) {
 					delete params.diagramParams[key];
 				}
 			}
-
 			this._diagram.setParams(params.diagramParams);
-
 			this._needs_updateDiagram = true;
 		}
 
@@ -429,11 +132,6 @@ export class Asset1 {
 				moonSize: params.sunAndMoonSize,
 			});
 			this._needs_updateDiagram = true;
-		}
-
-		if (params.hasOwnProperty('secondsPerCalendarPeriod')) {
-			this._secondsPerCalendarPeriod = this._validateNumberWithRange(params.secondsPerCalendarPeriod, 20, 1000, 'secondsPerCalendarPeriod');
-			this._needs_recalcAnimPlayingParams = true;
 		}
 
 		if (params.hasOwnProperty('width')) {
@@ -475,8 +173,8 @@ export class Asset1 {
 		this._needs_updateDiagram = true;
 
 		let rbb = this._root.getBoundingClientRect();
-		console.log(rbb.width+", "+rbb.height);
-		console.warn(this._width+", "+this._height);
+//		console.log(rbb.width+", "+rbb.height);
+//		console.warn(this._width+", "+this._height);
 
 //		this._root.style.width = this._width + 'px';
 //		this._root.style.height = this._height + 'px';
@@ -514,20 +212,6 @@ export class Asset1 {
 		this._needs_redoLayout = false;
 	}
 
-	_recalcAnimPlayingParams() {
-		// Call this whenever playing is about to start or when the animation
-		//	rate (secondsPerCalendarPeriod) has changed.
-		// It is safe to call this when not playing, even though it won't do
-		//	anything -- calculating is defered until playing starts.
-		if (this._isPlaying) {
-			this._animPlayingInitTime = this._time;
-			this._animPlayingInitClock = undefined;
-			this._animPlayingATUPerMS = this._CALENDAR_PERIOD / (1000 * this._secondsPerCalendarPeriod);
-			this._animPlayingMSPerTimeCycle = this._TIME_CYCLE / this._animPlayingATUPerMS;
-		}
-		this._needs_recalcAnimPlayingParams = false;
-	}
-
 
 	update() {
 
@@ -535,13 +219,25 @@ export class Asset1 {
 			this._redoLayout();
 		}
 
-		if (this._needs_recalcAnimPlayingParams) {
-			this._recalcAnimPlayingParams();
+		if (this._timekeeper.getHasAnimationStateChanged()) {
+			let animState = this._timekeeper.getAnimationState();
+			console.log('ANIMATION STATE HAS CHANGED: '+animState);
+			if (animState === LunarTimekeeper.prototype.IDLE) {
+				this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
+			} else if (animState === LunarTimekeeper.prototype.PLAYING) {
+				this._controlPanel.setMode(this._controlPanel.MODE_PAUSE_ENABLED);
+			} else if (animState === LunarTimekeeper.prototype.TRANSITIONING) {
+				this._controlPanel.setMode(this._controlPanel.MODE_ALL_DISABLED);
+			} else {
+				console.error('Unknown animation state.');
+			}
 		}
 
-		if (this._needs_X) {
+		if (this._timekeeper.getHasTimeChanged()) {
 			this._X();
 		}
+
+		this._timekeeper.clearFlags();
 
 		if (this._needs_updateDiagram) {
 			this._diagram.update();
@@ -554,18 +250,64 @@ export class Asset1 {
 
 		this._needs_updateDiagram = true;
 
+		// time will be an object with these properties:
+		// 	calendarDay: an integer in [1, 30]
+		//	fractionalTimeOfDay: a rational number in [0, 1) giving the time of day, where 0.0 is midnight, 0.5 is noon, etc.
+		//	moonPhase: a rational number in [0, 1) giving the moon phase, where 0.0 is the new moon, 0.25 is first quarter, etc.
+		let time = this._timekeeper.getTime();
+
 		let skyParams = {};
-		skyParams.sunPosition = this._timeOfDay - 0.25;
-		skyParams.moonPosition = skyParams.sunPosition - this._moonPhase;
+		skyParams.sunPosition = time.fractionalTimeOfDay - 0.25;
+		skyParams.moonPosition = skyParams.sunPosition - time.moonPhase;
 		this._diagram.setParams(skyParams);
 
 		let info = {};
-		info.day = 'Day ' + this._calendarDay;
-		info.timeOfDay = this.getTimeOfDayName(this._timeOfDay);
-		info.phaseName = this.getMoonPhaseName(this._moonPhase);
+		info.day = 'Day ' + time.calendarDay;
+		info.timeOfDay = this.getTimeOfDayName(time.fractionalTimeOfDay);
+		info.phaseName = this.getMoonPhaseName(time.moonPhase);
 		this._infoPanel.setInfo(info);
+	}
 
-		this._needs_X = false;
+
+	/*
+	**	Utilities
+	*/
+
+	getTimeOfDayName(timeOfDay) {
+		timeOfDay = (timeOfDay%1 + 1)%1;
+		if (timeOfDay < 0.25) {
+			return 'Nighttime';
+		} else if (timeOfDay <= 0.75) {
+			return 'Daytime';
+		} else {
+			return 'Nighttime';
+		}
+	}
+
+	getMoonPhaseName(moonPhase) {
+		moonPhase = (moonPhase%1 + 1)%1;
+		let newDelta = 0.02;
+		let quarterDelta = 0.02;
+		let fullDelta = 0.05;
+		if (moonPhase < newDelta) {
+			return 'New Moon';
+		} else if (moonPhase < 0.25 - quarterDelta) {
+			return 'Waxing Crescent';
+		} else if (moonPhase < 0.25 + quarterDelta) {
+			return 'First Quarter';
+		} else if (moonPhase < 0.5 - fullDelta) {
+			return 'Waxing Gibbous';
+		} else if (moonPhase < 0.5 + fullDelta) {
+			return 'Full Moon';
+		} else if (moonPhase < 0.75 - quarterDelta) {
+			return 'Waning Gibbous';
+		} else if (moonPhase < 0.75 + quarterDelta) {
+			return 'Third Quarter';
+		} else if (moonPhase < 1 - newDelta) {
+			return 'Waning Crescent';
+		} else {
+			return 'New Moon';
+		}
 	}
 
 
@@ -595,8 +337,8 @@ export class Asset1 {
 
 const COMPONENT = Asset1;
 const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.4.X';
-const BUILD_DATE_STR = '2019-06-23';
+const VERSION_STR = '0.5.X';
+const BUILD_DATE_STR = '2019-06-24';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {

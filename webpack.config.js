@@ -2,7 +2,7 @@
 webpack.config.js
 wgbh-asset1
 astro.unl.edu
-2019-06-19
+2019-06-23
 */
 
 
@@ -21,6 +21,7 @@ module.exports = {
 	resolve: {
 		modules: [
 			path.resolve(__dirname, 'untracked/wgbh-skydiagram/src'),
+			path.resolve(__dirname, 'untracked/wgbh-lunar-timekeeper/src'),
 			path.resolve(__dirname, 'node_modules'),
 		],
 	},
