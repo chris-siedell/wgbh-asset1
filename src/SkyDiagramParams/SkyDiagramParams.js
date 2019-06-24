@@ -2,7 +2,7 @@
 SkyDiagramParams.js
 wgbh-asset1
 astro.unl.edu
-2019-06-19
+2019-06-24
 */
 
 
@@ -24,7 +24,7 @@ export var SkyDiagramParams = {
  "horizon": 0.14999999999999997,
  "peak": 0.7150000000000002,
  "margin": 0.02999999999999999,
- "showTrack": true,
+ "showTrack": false,
  "trackColor": "#ffffff",
  "trackWidth": 0.5,
  "trackCutoutSize": 1.2,

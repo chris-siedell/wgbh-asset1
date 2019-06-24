@@ -2,7 +2,7 @@
 InfoPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-21
+2019-06-24
 */
 
 
@@ -21,9 +21,9 @@ export default class InfoPanel {
 		this._element.appendChild(this._dayDiv);
 
 
-//		this._timeOfDayDiv = document.createElement('div');
-//		this._timeOfDayDiv.textContent = '.';
-//		this._element.appendChild(this._timeOfDayDiv);
+		this._timeOfDayDiv = document.createElement('div');
+		this._timeOfDayDiv.textContent = '.';
+		this._element.appendChild(this._timeOfDayDiv);
 
 
 //		this._phaseNameDiv = document.createElement('div');
@@ -39,12 +39,15 @@ export default class InfoPanel {
 
 
 	setInfo(info) {
+
 		if (info.day !== undefined) {
 			this._dayDiv.textContent = info.day;
 		}
-//		if (info.timeOfDay !== undefined) {
-//			this._timeOfDayDiv.textContent = info.timeOfDay;
-//		}
+
+		if (info.timeOfDay !== undefined) {
+			this._timeOfDayDiv.textContent = info.timeOfDay;
+		}
+
 //		if (info.phaseName !== undefined) {
 //			this._phaseNameDiv.textContent = info.phaseName;
 //		}

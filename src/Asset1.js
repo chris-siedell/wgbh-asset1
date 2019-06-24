@@ -31,7 +31,7 @@ export class Asset1 {
 		this.goToDay1 = this.goToDay1.bind(this);
 		this.update = this.update.bind(this);
 
-		this._timekeeper = new LunarTimekeeper({calendarPeriodInDays: 30});
+		this._timekeeper = new LunarTimekeeper();
 		this._timekeeper.setTime({calendarDay: 6, fractionalTimeOfDay: 0.5875});
 		this._timekeeper.setChangeCallback(this.update);
 
@@ -106,6 +106,14 @@ export class Asset1 {
 	**
 	*/
 
+	raiseHasSizedChanged() {
+		this._needs_redoLayout = true;
+	}
+
+	/*
+	**
+	*/
+
 	getElement() {
 		return this._root;
 	}
@@ -134,6 +142,11 @@ export class Asset1 {
 			this._needs_updateDiagram = true;
 		}
 
+		if (params.hasOwnProperty('needsRedoLayout')) {
+			this._needs_redoLayout = true;
+		}
+
+/*
 		if (params.hasOwnProperty('width')) {
 			this._width = this._validateNumberWithRange(params.width, 100, 5000, 'width');
 			this._needs_redoLayout = true;
@@ -143,6 +156,7 @@ export class Asset1 {
 			this._height = this._validateNumberWithRange(params.height, 100, 5000, 'height');
 			this._needs_redoLayout = true;
 		}
+*/
 	}
 
 	_validateNumberWithRange(arg, min, max, name) {
@@ -182,7 +196,7 @@ export class Asset1 {
 		let skyParams = {};
 
 		// The media query below must be identical to the one used in Asset1.css.
-		let useSidewaysLayout = window.matchMedia('(aspect-ratio: 177/100), (min-aspect-ratio: 177/100)').matches;
+		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
 		if (useSidewaysLayout) {
 			// Sideways Layout
 			let bb = this._panels.getBoundingClientRect();
@@ -221,7 +235,6 @@ export class Asset1 {
 
 		if (this._timekeeper.getHasAnimationStateChanged()) {
 			let animState = this._timekeeper.getAnimationState();
-			console.log('ANIMATION STATE HAS CHANGED: '+animState);
 			if (animState === LunarTimekeeper.prototype.IDLE) {
 				this._controlPanel.setMode(this._controlPanel.MODE_ALL_ENABLED);
 			} else if (animState === LunarTimekeeper.prototype.PLAYING) {
@@ -263,7 +276,7 @@ export class Asset1 {
 
 		let info = {};
 		info.day = 'Day ' + time.calendarDay;
-		info.timeOfDay = this.getTimeOfDayName(time.fractionalTimeOfDay);
+		info.timeOfDay = this.getTimeAsDigitalTimeString(time);
 		info.phaseName = this.getMoonPhaseName(time.moonPhase);
 		this._infoPanel.setInfo(info);
 	}
@@ -272,6 +285,32 @@ export class Asset1 {
 	/*
 	**	Utilities
 	*/
+
+	getTimeAsDigitalTimeString(timeObj) {
+		// Not showing minutes.
+
+		// timeObj.hour will be an integer in [0, 23].
+
+		let hour = timeObj.hour;
+
+		if (hour >= 12) {
+			hour -= 12;
+		}	
+
+		if (hour === 0) {
+			hour = 12;
+		}	
+	
+		let str = hour.toFixed(0) + ":00 ";
+
+		if (timeObj.hour < 12) {
+			str += "AM";
+		} else {
+			str += "PM";
+		}
+
+		return str;
+	}	
 
 	getTimeOfDayName(timeOfDay) {
 		timeOfDay = (timeOfDay%1 + 1)%1;
@@ -337,7 +376,7 @@ export class Asset1 {
 
 const COMPONENT = Asset1;
 const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.5.X';
+const VERSION_STR = '0.5.0';
 const BUILD_DATE_STR = '2019-06-24';
 
 if (typeof window !== 'undefined') {

@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-23
+2019-06-24
 */
 
 
@@ -15,14 +15,15 @@ astro.unl.edu
 	-ms-user-select: none;
 	user-select: none;
 
+	overflow: hidden;
+
 	width: 100%;
 	height: 100%;
 
 	padding: 0;
 	margin: 0;
-	
+	border: 0;
 	background-color: black;
-	border: none;
 	box-sizing: border-box;
 
 	display: flex;
@@ -32,6 +33,10 @@ astro.unl.edu
 	/* Additional properties set in media queries. */
 }
 
+.wgbh-asset1-panels {
+	overflow: hidden;
+}
+
 
 /*
 **	Info Panel
@@ -39,14 +44,15 @@ astro.unl.edu
 
 .wgbh-asset1-infopanel {
 	width: 100%;
+	max-width: 45rem;
 	text-align: center;
-	margin: 0;
+	margin: 0 auto;
 	padding: 0.8rem 0;
 }
 
 .wgbh-asset1-infopanel div {
 	display: inline-block;
-	width: 50%;
+	width: 45%;
 	white-space: nowrap;
 	font-family: "Muli", sans-serif;
 	font-weight: 800;
@@ -236,7 +242,7 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 .wgbh-asset1-controlpanel-bottom {
 	width: 100%;
 	margin: 0;
-	padding: 0;
+	padding: 0 0 1rem 0;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -273,7 +279,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 	changing the value in the window.matchMedia call in Asset1.js.
 */
 
-@media (aspect-ratio: 177/100), (min-aspect-ratio: 177/100) {
+@media (min-aspect-ratio: 177/100) {
 
 	/*
 		Sideways Layout
@@ -281,7 +287,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 
 	.wgbh-asset1-root {
 		min-width: 35rem;
-		min-height: 20rem;
+		min-height: 21rem;
 		flex-direction: row;
 	}
 
@@ -309,7 +315,28 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 }
 
 
-@media (max-width: 38rem), (width: 38rem), (min-aspect-ratio: 177/100), (aspect-ratio: 177/100) {
+/*
+When a window is being drag-resized to be smaller it will think the content is too large, but later
+the JavaScript (in Asset1.js) will resize the diagram to make everything fit. Thus the scrollbars need
+to be suppressed unless the viewport is actually too small.
+*/
+
+@media (min-aspect-ratio: 177/100) and (max-width: 35rem), (min-aspect-ratio: 177/100) and (max-height: 21rem) {
+	/* Sideways Layout -- Too Small Viewport */
+	.wgbh-asset1-root {
+		overflow: auto;
+	}
+}
+
+@media (max-aspect-ratio: 177/180) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 30rem) {
+	/* Stacked Layout - Too Small Viewport */
+	.wgbh-asset1-root {
+		overflow: auto;
+	}
+}
+
+
+@media (max-width: 38rem), (width: 38rem), (min-aspect-ratio: 177/100) {
 	
 	/*
 		Narrow Control Panel
