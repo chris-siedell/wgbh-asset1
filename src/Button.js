@@ -2,7 +2,7 @@
 Button.js
 wgbh-asset1
 astro.unl.edu
-2019-06-22
+2019-06-25
 */
 
 
@@ -11,16 +11,16 @@ export default class Button {
 
 	constructor(initParams) {
 		// initParams:
-		//	title - required
+		//	desc - required
 		//	iconSrc - optional
-		//	text - required
+		//	label - required
 		// 	specificClass - optional
 		
 		this._button = document.createElement('button');
 		this._button.classList.add('wgbh-asset1-button');
 
-		this._button.setAttribute('aria-label', initParams.title);
-		this._button.setAttribute('title', initParams.title);
+		this._button.setAttribute('aria-label', initParams.desc);
+		this._button.setAttribute('title', initParams.desc);
 
 		if (initParams.hasOwnProperty('specificClass')) {
 			this._button.classList.add(initParams.specificClass);
@@ -36,12 +36,19 @@ export default class Button {
 		}
 
 		this._label = document.createElement('span');
-		this._label.textContent = initParams.text;
+		this._label.textContent = initParams.label;
 		this._contents.appendChild(this._label);
 	}
 
+
 	getElement() {
 		return this._button;
+	}
+
+	updateWithParams(params) {
+		this._button.setAttribute('aria-label', params.desc);
+		this._button.setAttribute('title', params.desc);
+		this._label.textContent = params.label;
 	}
 
 	addHandler(func) {
@@ -56,6 +63,8 @@ export default class Button {
 	}
 	
 	setVisible(arg) {
+		// Currently only the play/pause buttons require this method to
+		//	alternate between them.
 		if (arg) {
 			this._button.style.display = 'inline-block';
 		} else {

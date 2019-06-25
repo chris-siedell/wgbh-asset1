@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-24
+2019-06-25
 */
 
 
@@ -36,6 +36,27 @@ astro.unl.edu
 .wgbh-asset1-panels {
 	overflow: hidden;
 }
+
+.wgbh-asset1-diagram-container {
+	overflow: hidden;
+	position: relative;
+}
+
+.wgbh-asset1-phase-readout {
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-family: "Muli", sans-serif;
+	font-weight: 800;
+	font-size: 1.6rem;
+	padding: 0.4rem;
+}
+	
+.wgbh-asset1-phase-readout span {
+	white-space: nowrap;
+	color: white;
+}
+
 
 
 /*
@@ -242,12 +263,27 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 .wgbh-asset1-controlpanel-bottom {
 	width: 100%;
 	margin: 0;
-	padding: 0 0 1rem 0;
+	padding: 0; /*0 0 1rem 0;*/
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+}
+
+.wgbh-asset1-controlpanel-bottomest {
+	width: 100%;
+	margin: 0;
+	padding: 0.2rem 0.3rem;
+}
+
+.wgbh-asset1-controlpanel label span {
+	font-family: "Muli", sans-serif;
+	font-weight: 400;
+	color: white;
+	font-size: 1rem;
+	vertical-align: middle;
+	margin: 0 0.2rem;
 }
 
 .wgbh-asset1-play-pause {
@@ -287,7 +323,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 
 	.wgbh-asset1-root {
 		min-width: 35rem;
-		min-height: 21rem;
+		min-height: 22rem;
 		flex-direction: row;
 	}
 
@@ -305,7 +341,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 	
 	.wgbh-asset1-root {
 		min-width: 20rem;
-		min-height: 30rem;
+		min-height: 31rem;
 		flex-direction: column;
 	}
 
@@ -321,14 +357,14 @@ the JavaScript (in Asset1.js) will resize the diagram to make everything fit. Th
 to be suppressed unless the viewport is actually too small.
 */
 
-@media (min-aspect-ratio: 177/100) and (max-width: 35rem), (min-aspect-ratio: 177/100) and (max-height: 21rem) {
+@media (min-aspect-ratio: 177/100) and (max-width: 35rem), (min-aspect-ratio: 177/100) and (max-height: 22rem) {
 	/* Sideways Layout -- Too Small Viewport */
 	.wgbh-asset1-root {
 		overflow: auto;
 	}
 }
 
-@media (max-aspect-ratio: 177/180) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 30rem) {
+@media (max-aspect-ratio: 177/180) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 31rem) {
 	/* Stacked Layout - Too Small Viewport */
 	.wgbh-asset1-root {
 		overflow: auto;

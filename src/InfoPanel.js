@@ -2,55 +2,32 @@
 InfoPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-24
+2019-06-25
 */
 
 
 export default class InfoPanel {
 
 
+	constructor(parent) {
 
-	constructor() {
+		this._parent = parent;
 
 		this._element = document.createElement('div');
 		this._element.classList.add('wgbh-asset1-infopanel');
-
 
 		this._dayDiv = document.createElement('div');
 		this._dayDiv.textContent = '.';
 		this._element.appendChild(this._dayDiv);
 
-
 		this._timeOfDayDiv = document.createElement('div');
 		this._timeOfDayDiv.textContent = '.';
 		this._element.appendChild(this._timeOfDayDiv);
-
-
-//		this._phaseNameDiv = document.createElement('div');
-//		this._phaseNameDiv.textContent = '.';
-//		this._element.appendChild(this._phaseNameDiv);
-
-	}
-
-	getMinHeight() {
-		let bb = this._sampler.getBoundingClientRect();
-		return bb.height;
 	}
 
 
-	setInfo(info) {
-
-		if (info.day !== undefined) {
-			this._dayDiv.textContent = info.day;
-		}
-
-		if (info.timeOfDay !== undefined) {
-			this._timeOfDayDiv.textContent = info.timeOfDay;
-		}
-
-//		if (info.phaseName !== undefined) {
-//			this._phaseNameDiv.textContent = info.phaseName;
-//		}
+	getElement() {
+		return this._element;
 	}
 
 
@@ -59,10 +36,30 @@ export default class InfoPanel {
 	}
 
 
-	getElement() {
-		return this._element;
+	updateWithTimeObj(timeObj) {
+		this._dayDiv.textContent = this._parent._currLocalizations.dayLabel + ' ' + timeObj.calendarDay;
+		this._timeOfDayDiv.textContent = this.getTimeAsDigitalTimeString(timeObj);
 	}
 
+
+	getTimeAsDigitalTimeString(timeObj) {
+		// Not showing minutes.
+		// timeObj.hour will be an integer in [0, 23].
+		let hour = timeObj.hour;
+		if (hour >= 12) {
+			hour -= 12;
+		}	
+		if (hour < 1) {
+			hour = 12;
+		}	
+		let str = hour.toFixed(0) + ":00 ";
+		if (timeObj.hour < 12) {
+			str += "AM";
+		} else {
+			str += "PM";
+		}
+		return str;
+	}	
 
 }
 

@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-06-24
+2019-06-25
 */
 
 
@@ -15,12 +15,19 @@ import {SkyDiagramParams} from './SkyDiagramParams/SkyDiagramParams.js';
 
 import ControlPanel from './ControlPanel.js';
 import InfoPanel from './InfoPanel.js';
+import PhaseReadout from './PhaseReadout.js';
+
+import {Localizations} from './Localizations.js';
 
 
 export class Asset1 {
 
 
 	constructor() {
+
+		// Some child elements (info panel, control panel, and phase readout) will
+		//	directly access _currLocalizations.
+		this._currLocalizations = Localizations['default'];
 
 		this.decrementDay = this.decrementDay.bind(this);
 		this.decrementHour = this.decrementHour.bind(this);
@@ -39,14 +46,24 @@ export class Asset1 {
 		this._root.classList.add('wgbh-asset1-root');
 
 		this._diagram = new SkyDiagram();
-		let diagramElement = this._diagram.getElement();
-		this._root.appendChild(diagramElement);
+		this._phaseReadout = new PhaseReadout(this);
+
+		// The _phaseReadout element is appended/removed from _diagramContainer
+		//	depending on whether the feature is currently enabled.
+		// _isPhaseReadoutShown must be in sync with whether _phaseReadout is
+		//	currently a child of _diagramContainer.
+		this._isPhaseReadoutShown = false;
+
+		this._diagramContainer = document.createElement('div');
+		this._diagramContainer.classList.add('wgbh-asset1-diagram-container');
+		this._diagramContainer.appendChild(this._diagram.getElement());
+		this._root.appendChild(this._diagramContainer);
 
 		this._panels = document.createElement('div');
 		this._panels.classList.add('wgbh-asset1-panels');
 		this._root.appendChild(this._panels);
 
-		this._infoPanel = new InfoPanel();
+		this._infoPanel = new InfoPanel(this);
 		this._panels.appendChild(this._infoPanel.getElement());
 
 		this._controlPanel = new ControlPanel(this);
@@ -66,6 +83,7 @@ export class Asset1 {
 		this.setParams({
 			diagramParams: SkyDiagramParams,
 		});
+
 	}
 
 
@@ -106,16 +124,21 @@ export class Asset1 {
 	**
 	*/
 
-	raiseHasSizedChanged() {
-		this._needs_redoLayout = true;
-	}
-
-	/*
-	**
-	*/
-
 	getElement() {
 		return this._root;
+	}
+
+	_setIsPhaseReadoutShown(arg) {
+		arg = Boolean(arg);
+		if (arg === this._isPhaseReadoutShown) {
+			throw new Error('_isPhaseReadoutShown was out of sync with checkbox value.');
+		}
+		if (arg) {
+			this._diagramContainer.appendChild(this._phaseReadout.getElement());
+		} else {
+			this._diagramContainer.removeChild(this._phaseReadout.getElement());
+		}
+		this._isPhaseReadoutShown = arg;
 	}
 
 	setParams(params) {
@@ -143,6 +166,7 @@ export class Asset1 {
 		}
 
 		if (params.hasOwnProperty('needsRedoLayout')) {
+			// Simply the presence of this flag will cause the layout to be redone.
 			this._needs_redoLayout = true;
 		}
 
@@ -221,16 +245,46 @@ export class Asset1 {
 			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
 		}
 
+		skyParams.width = Math.floor(skyParams.width);
+		skyParams.height = Math.floor(skyParams.height);
+
+		this._diagramContainer.style.width = skyParams.width + 'px';
+		this._diagramContainer.style.height = skyParams.height + 'px';
+
 		this._diagram.setParams(skyParams);
 	
 		this._needs_redoLayout = false;
 	}
 
+	_doTimeBasedUpdates() {
+
+		this._needs_updateDiagram = true;
+
+		// timeObj will be an object with these properties:
+		// 	calendarDay: an integer in [1, 30]
+		//	fractionalTimeOfDay: a rational number in [0, 1) giving the time of day, where 0.0 is midnight, 0.5 is noon, etc.
+		//	moonPhase: a rational number in [0, 1) giving the moon phase, where 0.0 is the new moon, 0.25 is first quarter, etc.
+		let timeObj = this._timekeeper.getTime();
+		
+		let diagramParams = {};
+		diagramParams.sunPosition = timeObj.fractionalTimeOfDay - 0.25;
+		diagramParams.moonPosition = diagramParams.sunPosition - timeObj.moonPhase;
+		this._diagram.setParams(diagramParams);
+
+		this._infoPanel.updateWithTimeObj(timeObj);
+
+		this._phaseReadout.updateWithTimeObj(timeObj);
+	}
 
 	update() {
 
 		if (this._needs_redoLayout) {
 			this._redoLayout();
+		}
+
+		if (this._needs_updateLocalizations) {
+			// The other panels/readouts will be updated with _doTimeBasedUpdates.
+			this._controlPanel.updateLocalizations();
 		}
 
 		if (this._timekeeper.getHasAnimationStateChanged()) {
@@ -246,118 +300,17 @@ export class Asset1 {
 			}
 		}
 
-		if (this._timekeeper.getHasTimeChanged()) {
-			this._X();
+		if (this._timekeeper.getHasTimeChanged() || this._needs_updateLocalizations) {
+			this._doTimeBasedUpdates();
 		}
 
 		this._timekeeper.clearFlags();
+		this._needs_updateLocalizations = false;
 
 		if (this._needs_updateDiagram) {
 			this._diagram.update();
 			this._needs_updateDiagram = false;
 		}
-	}
-	
-
-	_X() {
-
-		this._needs_updateDiagram = true;
-
-		// time will be an object with these properties:
-		// 	calendarDay: an integer in [1, 30]
-		//	fractionalTimeOfDay: a rational number in [0, 1) giving the time of day, where 0.0 is midnight, 0.5 is noon, etc.
-		//	moonPhase: a rational number in [0, 1) giving the moon phase, where 0.0 is the new moon, 0.25 is first quarter, etc.
-		let time = this._timekeeper.getTime();
-
-		let skyParams = {};
-		skyParams.sunPosition = time.fractionalTimeOfDay - 0.25;
-		skyParams.moonPosition = skyParams.sunPosition - time.moonPhase;
-		this._diagram.setParams(skyParams);
-
-		let info = {};
-		info.day = 'Day ' + time.calendarDay;
-		info.timeOfDay = this.getTimeAsDigitalTimeString(time);
-		info.phaseName = this.getMoonPhaseName(time.moonPhase);
-		this._infoPanel.setInfo(info);
-	}
-
-
-	/*
-	**	Utilities
-	*/
-
-	getTimeAsDigitalTimeString(timeObj) {
-		// Not showing minutes.
-
-		// timeObj.hour will be an integer in [0, 23].
-
-		let hour = timeObj.hour;
-
-		if (hour >= 12) {
-			hour -= 12;
-		}	
-
-		if (hour === 0) {
-			hour = 12;
-		}	
-	
-		let str = hour.toFixed(0) + ":00 ";
-
-		if (timeObj.hour < 12) {
-			str += "AM";
-		} else {
-			str += "PM";
-		}
-
-		return str;
-	}	
-
-	getTimeOfDayName(timeOfDay) {
-		timeOfDay = (timeOfDay%1 + 1)%1;
-		if (timeOfDay < 0.25) {
-			return 'Nighttime';
-		} else if (timeOfDay <= 0.75) {
-			return 'Daytime';
-		} else {
-			return 'Nighttime';
-		}
-	}
-
-	getMoonPhaseName(moonPhase) {
-		moonPhase = (moonPhase%1 + 1)%1;
-		let newDelta = 0.02;
-		let quarterDelta = 0.02;
-		let fullDelta = 0.05;
-		if (moonPhase < newDelta) {
-			return 'New Moon';
-		} else if (moonPhase < 0.25 - quarterDelta) {
-			return 'Waxing Crescent';
-		} else if (moonPhase < 0.25 + quarterDelta) {
-			return 'First Quarter';
-		} else if (moonPhase < 0.5 - fullDelta) {
-			return 'Waxing Gibbous';
-		} else if (moonPhase < 0.5 + fullDelta) {
-			return 'Full Moon';
-		} else if (moonPhase < 0.75 - quarterDelta) {
-			return 'Waning Gibbous';
-		} else if (moonPhase < 0.75 + quarterDelta) {
-			return 'Third Quarter';
-		} else if (moonPhase < 1 - newDelta) {
-			return 'Waning Crescent';
-		} else {
-			return 'New Moon';
-		}
-	}
-
-
-	/*
-	**	Misc
-	*/
-
-	_removeAllChildren(element) {
-	  while (element.firstChild) {
-	    element.removeChild(element.firstChild);
-	  }
 	}
 
 }
@@ -376,8 +329,8 @@ export class Asset1 {
 
 const COMPONENT = Asset1;
 const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.5.0';
-const BUILD_DATE_STR = '2019-06-24';
+const VERSION_STR = '0.6';
+const BUILD_DATE_STR = '2019-06-25';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {

@@ -2,7 +2,7 @@
 ControlPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-21
+2019-06-25
 */
 
 
@@ -55,10 +55,11 @@ export default class ControlPanel {
 		bottomSection.classList.add('wgbh-asset1-controlpanel-bottom');
 		this._element.appendChild(bottomSection);
 
+		let loc = this._parent._currLocalizations;
 
 		this._decrementHourButton = new Button({
-			title: 'go back one hour',
-			text: '1 Hour',
+			desc: loc.decrementHourButton.desc,
+			label: loc.decrementHourButton.label,
 			iconSrc: SkipBackOneHourURL,
 			specificClass: 'wgbh-asset1-skip',
 		});
@@ -66,8 +67,8 @@ export default class ControlPanel {
 		leftSection.appendChild(this._decrementHourButton.getElement());
 		
 		this._decrementDayButton = new Button({
-			title: 'go back one day',
-			text: '1 Day',
+			desc: loc.decrementDayButton.desc,
+			label: loc.decrementDayButton.label,
 			iconSrc: SkipBackOneDayURL,
 			specificClass: 'wgbh-asset1-skip',
 		});
@@ -76,8 +77,8 @@ export default class ControlPanel {
 		leftSection.appendChild(this._decrementDayButton.getElement());
 
 		this._playButton = new Button({
-			title: 'play',
-			text: 'Play',
+			desc: loc.playButton.desc,
+			label: loc.playButton.label,
 			iconSrc: PlayIconURL,
 			specificClass: 'wgbh-asset1-play-pause',
 		});
@@ -85,8 +86,8 @@ export default class ControlPanel {
 		topSection.appendChild(this._playButton.getElement());
 
 		this._pauseButton = new Button({
-			title: 'pause',
-			text: 'Pause',
+			desc: loc.pauseButton.desc,
+			label: loc.pauseButton.label,
 			iconSrc: PauseIconURL,
 			specificClass: 'wgbh-asset1-play-pause',
 		});
@@ -94,16 +95,16 @@ export default class ControlPanel {
 		topSection.appendChild(this._pauseButton.getElement());
 
 		this._goToDay1Button = new Button({
-			title: 'go to day 1',
-			text: 'Go to Day 1',
+			desc: loc.goToDay1Button.desc,
+			label: loc.goToDay1Button.label,
 			specificClass: 'wgbh-asset1-reset',
 		});
 		this._goToDay1Button.addHandler(this._parent.goToDay1);
 		bottomSection.appendChild(this._goToDay1Button.getElement());
 
 		this._incrementHourButton = new Button({
-			title: 'go forward one hour',
-			text: '1 Hour',
+			desc: loc.incrementHourButton.desc,
+			label: loc.incrementHourButton.label,
 			iconSrc: SkipForwardOneHourURL,
 			specificClass: 'wgbh-asset1-skip',
 		});
@@ -111,13 +112,43 @@ export default class ControlPanel {
 		rightSection.appendChild(this._incrementHourButton.getElement());
 
 		this._incrementDayButton = new Button({
-			title: 'go forward one day',
-			text: '1 Day',
+			desc: loc.incrementDayButton.desc,
+			label: loc.incrementDayButton.label,
 			iconSrc: SkipForwardOneDayURL,
 			specificClass: 'wgbh-asset1-skip',
 		});
 		this._incrementDayButton.addHandler(this._parent.incrementDay);
 		rightSection.appendChild(this._incrementDayButton.getElement());
+
+		// TODO: finalize
+		let bottomestSection = document.createElement('div');
+		bottomestSection.classList.add('wgbh-asset1-controlpanel-bottomest');
+		this._element.appendChild(bottomestSection);
+
+		this._phaseReadoutCheck = document.createElement('input');
+		this._phaseReadoutCheck.type = 'checkbox';
+		this._phaseReadoutCheck.id = 'wgbh-asset1-phase-readout-check';
+		this._phaseReadoutCheck.name = 'Show Moon Phase Names';
+		this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
+		this._phaseReadoutCheck.addEventListener('change', (e) => {
+			try {
+				this._parent._setIsPhaseReadoutShown(this._phaseReadoutCheck.checked);
+			} catch (err) {
+				console.error(err);
+				this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
+				return;
+			}
+		});
+
+		this._phaseReadoutLabel = document.createElement('label');
+		this._phaseReadoutLabel.htmlFor = 'wgbh-asset1-phase-readout-check';
+		this._phaseReadoutLabel.appendChild(this._phaseReadoutCheck);
+
+		this._phaseReadoutLabelText = document.createElement('span');
+		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
+		this._phaseReadoutLabel.appendChild(this._phaseReadoutLabelText);
+
+		bottomestSection.appendChild(this._phaseReadoutLabel);
 
 		this.setMode(this.MODE_ALL_ENABLED);
 	}
@@ -130,7 +161,17 @@ export default class ControlPanel {
 		return this._element.clientHeight;
 	}
 
-
+	updateLocalizations() {
+		let loc = this._parent._currLocalizations;
+		this._decrementHourButton.updateWithParams(loc.decrementHourButton);
+		this._decrementDayButton.updateWithParams(loc.decrementDayButton);
+		this._playButton.updateWithParams(loc.playButton);
+		this._pauseButton.updateWithParams(loc.pauseButton);
+		this._goToDay1Button.updateWithParams(loc.goToDay1Button);
+		this._incrementHourButton.updateWithParams(loc.incrementHourButton);
+		this._incrementDayButton.updateWithParams(loc.incrementDayButton);
+		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
+	}
 
 	setMode(arg) {
 
@@ -173,7 +214,6 @@ export default class ControlPanel {
 			return;
 		}
 	}
-
 
 }
 
