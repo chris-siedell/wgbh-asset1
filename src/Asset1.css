@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-06-25
+2019-07-29
 */
 
 
@@ -46,7 +46,7 @@ astro.unl.edu
 	position: absolute;
 	top: 0;
 	right: 0;
-	font-family: "Muli", sans-serif;
+	font-family: sans-serif;
 	font-weight: 800;
 	font-size: 1.6rem;
 	padding: 0.4rem;
@@ -75,7 +75,7 @@ astro.unl.edu
 	display: inline-block;
 	width: 45%;
 	white-space: nowrap;
-	font-family: "Muli", sans-serif;
+	font-family: sans-serif;
 	font-weight: 800;
 	font-size: 2rem;
 	color: white;
@@ -86,19 +86,18 @@ astro.unl.edu
 **	Button
 */
 
-.wgbh-asset1-button {
-	font-family: "Muli", sans-serif;
+.wgbh-button {
+	font-family: sans-serif;
 	font-weight: 600;
+	direction: ltr;
 	display: block;
 	border: none;
 	color: black;
 	cursor: pointer;
   border-radius: 14px;
-  background-color: #ffe61e;
-	box-shadow: 0 4px 0 0 #ffba09;
 }
 
-.wgbh-asset1-button div {
+.wgbh-button div {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -108,35 +107,107 @@ astro.unl.edu
 	line-height: 1;
 }
 
-.wgbh-asset1-button img {
+.wgbh-button img {
 	display: inline-block;
 	margin: 0 0.5rem 0 0;
 	height: 0.8em;
 }
 	
-.wgbh-asset1-button span {
+.wgbh-button span {
 	padding: 0.1em 0 0 0;
 	margin: 0;
 }
 
-.wgbh-asset1-button:not([disabled]):active {
+.wgbh-button:not([disabled]):active {
 	transform: translateY(4px);
 	box-shadow: none;
 }
 
-.wgbh-asset1-button:disabled {
+.wgbh-button:disabled {
 	opacity: 0.6;
 	cursor: default;
 }
 
-.wgbh-asset1-button:focus {
+.wgbh-button:focus {
 	outline: 6px solid white;
 	outline-offset: 3px;
 	border: none;
 }
 
-.wgbh-asset1-button::-moz-focus-inner {
+.wgbh-button::-moz-focus-inner {
 	border: none;
+}
+
+
+/*
+**	Checkbox
+*/
+
+.wgbh-checkbox-focused {
+	outline: 6px solid white;
+	outline-offset: 3px;
+	border: none;
+}
+
+.wgbh-checkbox {
+	display: inline-block;
+	padding: 0;
+	margin: 0.6rem 1.5rem;
+	height: 1.5rem;
+	border: 0;
+}
+
+.wgbh-checkbox label {
+	position: relative;
+	font-family: sans-serif;
+	font-weight: 500;
+	font-size: 1.2rem;
+	color: white;
+	margin: 0 0.2rem;
+	padding: 0;
+}
+
+.wgbh-checkbox label span {
+	vertical-align: middle;
+}
+
+.wgbh-checkbox input {
+	position: absolute;
+	opacity: 0;
+	z-index: -1;
+}
+
+.wgbh-checkbox-indicator {
+	position: relative;
+	vertical-align: middle;
+	display: inline-block;
+	margin: 0 0.5rem 0 0;
+	height: 1em;
+	width: 1em;
+
+	box-sizing: border-box;
+	border: 2px solid white;
+	border-radius: 4px;
+}
+
+.wgbh-checkbox-indicator:after {
+	content: '';
+	display: none;
+}
+
+.wgbh-checkbox input:checked ~ .wgbh-checkbox-indicator:after {
+	display: block;
+}
+
+.wgbh-checkbox-indicator:after {
+	position: relative;
+  left: 0.22em;
+  top: 0.01em;
+  width: 0.2em;
+  height: 0.5em;
+  border: solid #fff;
+  border-width: 0 0.17em 0.17em 0;
+  transform: rotate(45deg);
 }
 
 
@@ -150,6 +221,8 @@ astro.unl.edu
 	padding: 0.2rem;
 	height: 4rem;
 	width: 13rem;
+  background-color: #ffe61e;
+	box-shadow: 0 4px 0 0 #ffba09;
 }
 
 /* DO NOT CHANGE the skip button's width or left/right margins without first
@@ -161,14 +234,30 @@ astro.unl.edu
 	padding: 0.2rem;
 	height: 2.2rem;
 	width: 9rem;
+	color: white;
+  background-color: #484848;
+	box-shadow: 0 4px 0 0 #181818;
 }
 
 .wgbh-asset1-reset {
-	margin: 0.6rem 0.4rem;
-	font-size: 1rem;
-	padding: 0.2rem;
-	height: 1.7rem;
-	width: 9rem;
+	background-color: transparent;
+	cursor: pointer;
+	color: white;
+
+	font-family: sans-serif;
+	font-weight: 500;
+
+	text-decoration: underline;
+	
+	margin: 0.6rem 1.5rem;
+	font-size: 1.2rem;
+	padding: 0.1rem;
+	height: 1.5rem;
+	width: 8rem;
+}
+
+.wgbh-asset1-reset:not([disabled]):active {
+	transform: none;
 }
 
 
@@ -255,6 +344,7 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 }
 
 .wgbh-asset1-controlpanel-right {
+	direction: rtl;
 	display: inline-block;
 	margin: 0 auto;
 	padding: 0;
@@ -274,16 +364,7 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 .wgbh-asset1-controlpanel-bottomest {
 	width: 100%;
 	margin: 0;
-	padding: 0.2rem 0.3rem;
-}
-
-.wgbh-asset1-controlpanel label span {
-	font-family: "Muli", sans-serif;
-	font-weight: 400;
-	color: white;
-	font-size: 1rem;
-	vertical-align: middle;
-	margin: 0 0.2rem;
+	padding: 0.3rem 0.3rem;
 }
 
 .wgbh-asset1-play-pause {
@@ -403,6 +484,9 @@ to be suppressed unless the viewport is actually too small.
 		width: 50%;
 	}
 
+	.wgbh-asset1-controlpanel-bottom {
+		flex-direction: column;
+	}
 
 	/* Debugging TODO: remove */
 /*
@@ -447,6 +531,10 @@ to be suppressed unless the viewport is actually too small.
 	.wgbh-asset1-controlpanel-right {
 		flex: 1 1 30%;
 		order: 3;
+	}
+
+	.wgbh-asset1-controlpanel-bottom {
+		flex-direction: row;
 	}
 
 

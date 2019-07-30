@@ -2,18 +2,20 @@
 ControlPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-06-25
+2019-07-29
 */
 
 
 import PlayIconURL from './icons/play-icons_v2_play.svg';
 import PauseIconURL from './icons/play-icons_v2_pause.svg';
-import SkipBackOneDayURL from './icons/double-back.svg';
-import SkipBackOneHourURL from './icons/back.svg';
-import SkipForwardOneDayURL from './icons/double-forward.svg';
-import SkipForwardOneHourURL from './icons/forward.svg';
+import SkipBackOneDayURL from './icons/double-back-white.svg';
+import SkipBackOneHourURL from './icons/back-white.svg';
+import SkipForwardOneDayURL from './icons/double-forward-white.svg';
+import SkipForwardOneHourURL from './icons/forward-white.svg';
+
 
 import Button from './Button.js';
+import Checkbox from './Checkbox.js';
 
 
 export default class ControlPanel {
@@ -94,14 +96,6 @@ export default class ControlPanel {
 		this._pauseButton.addHandler(this._parent.pause);
 		topSection.appendChild(this._pauseButton.getElement());
 
-		this._goToDay1Button = new Button({
-			desc: loc.goToDay1Button.desc,
-			label: loc.goToDay1Button.label,
-			specificClass: 'wgbh-asset1-reset',
-		});
-		this._goToDay1Button.addHandler(this._parent.goToDay1);
-		bottomSection.appendChild(this._goToDay1Button.getElement());
-
 		this._incrementHourButton = new Button({
 			desc: loc.incrementHourButton.desc,
 			label: loc.incrementHourButton.label,
@@ -120,35 +114,56 @@ export default class ControlPanel {
 		this._incrementDayButton.addHandler(this._parent.incrementDay);
 		rightSection.appendChild(this._incrementDayButton.getElement());
 
+
 		// TODO: finalize
-		let bottomestSection = document.createElement('div');
-		bottomestSection.classList.add('wgbh-asset1-controlpanel-bottomest');
-		this._element.appendChild(bottomestSection);
+//		let bottomestSection = document.createElement('div');
+//		bottomestSection.classList.add('wgbh-asset1-controlpanel-bottomest');
+//		this._element.appendChild(bottomestSection);
 
-		this._phaseReadoutCheck = document.createElement('input');
-		this._phaseReadoutCheck.type = 'checkbox';
-		this._phaseReadoutCheck.id = 'wgbh-asset1-phase-readout-check';
-		this._phaseReadoutCheck.name = 'Show Moon Phase Names';
-		this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
-		this._phaseReadoutCheck.addEventListener('change', (e) => {
-			try {
-				this._parent._setIsPhaseReadoutShown(this._phaseReadoutCheck.checked);
-			} catch (err) {
-				console.error(err);
-				this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
-				return;
-			}
+		this._showPhaseReadoutCheck = new Checkbox({
+			label: "Show Moon Phase Names",
+			isChecked: this._parent._isPhaseReadoutShown,
+			callback: (checkbox, value) => {
+				this._parent._setIsPhaseReadoutShown(value);
+			},
 		});
+		bottomSection.appendChild(this._showPhaseReadoutCheck.getElement());
 
-		this._phaseReadoutLabel = document.createElement('label');
-		this._phaseReadoutLabel.htmlFor = 'wgbh-asset1-phase-readout-check';
-		this._phaseReadoutLabel.appendChild(this._phaseReadoutCheck);
+		this._goToDay1Button = new Button({
+			desc: loc.goToDay1Button.desc,
+			label: loc.goToDay1Button.label,
+			specificClass: 'wgbh-asset1-reset',
+		});
+		this._goToDay1Button.addHandler(this._parent.goToDay1);
+		bottomSection.appendChild(this._goToDay1Button.getElement());
 
-		this._phaseReadoutLabelText = document.createElement('span');
-		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
-		this._phaseReadoutLabel.appendChild(this._phaseReadoutLabelText);
 
-		bottomestSection.appendChild(this._phaseReadoutLabel);
+//		this._phaseReadoutCheck = document.createElement('input');
+//		this._phaseReadoutCheck.type = 'checkbox';
+//		this._phaseReadoutCheck.id = 'wgbh-asset1-phase-readout-check';
+//		this._phaseReadoutCheck.name = 'Show Moon Phase Names';
+//		this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
+//		this._phaseReadoutCheck.addEventListener('change', (e) => {
+//			try {
+//				this._parent._setIsPhaseReadoutShown(this._phaseReadoutCheck.checked);
+//			} catch (err) {
+//				console.error(err);
+//				this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
+//				return;
+//			}
+//		});
+//
+//		this._phaseReadoutLabel = document.createElement('label');
+//		this._phaseReadoutLabel.htmlFor = 'wgbh-asset1-phase-readout-check';
+//		this._phaseReadoutLabel.appendChild(this._phaseReadoutCheck);
+//
+//		this._phaseReadoutLabelText = document.createElement('span');
+//		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
+//		this._phaseReadoutLabel.appendChild(this._phaseReadoutLabelText);
+//
+//		bottomestSection.appendChild(this._phaseReadoutLabel);
+
+		this._prevFocusedButton = null;
 
 		this.setMode(this.MODE_ALL_ENABLED);
 	}
@@ -173,9 +188,33 @@ export default class ControlPanel {
 		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
 	}
 
+	_getCurrentFocusedButton() {
+		// May return null.
+
+		let buttons = [
+			this._decrementDayButton,
+			this._decrementHourButton,
+			this._pauseButton,
+			this._playButton,
+			this._goToDay1Button,
+			this._incrementHourButton,
+			this._incrementDayButton,
+		];
+
+		for (const button of buttons) {
+			if (button.getIsFocused()) {
+				return button;
+			}
+		}
+
+		return null;
+	}
+
 	setMode(arg) {
 
 		if (arg === this.MODE_ALL_DISABLED) {
+
+			this._prevFocusedButton = this._getCurrentFocusedButton();
 
 			this._decrementDayButton.setEnabled(false);
 			this._decrementHourButton.setEnabled(false);
@@ -185,7 +224,17 @@ export default class ControlPanel {
 			this._incrementHourButton.setEnabled(false);
 			this._incrementDayButton.setEnabled(false);
 
+			if (this._prevFocusedButton !== null) {
+				// Sometimes, some browsers allow buttons to retain focus while disabled. When this
+				//	happens and the user presses SPACE while disabled the button will be stuck in
+				//	the activated state when the transition is over. Making sure the button does not
+				//	have focus while disabled mitigates this issue (and correctly signifies to the user
+				//	that interaction is currently not possible).
+				this._prevFocusedButton.setIsFocused(false);
+			}
 		} else if (arg === this.MODE_PAUSE_ENABLED) {
+
+			this._prevFocusedButton = this._getCurrentFocusedButton();
 
 			this._playButton.setVisible(false);
 			this._pauseButton.setVisible(true);
@@ -197,6 +246,13 @@ export default class ControlPanel {
 			this._incrementHourButton.setEnabled(false);
 			this._incrementDayButton.setEnabled(false);
 
+			if (this._prevFocusedButton === this._playButton) {
+				// Transfer focus to pause button.
+				this._pauseButton.setIsFocused(true);
+			} else if (this._prevFocusedButton !== null) {
+				// See comments in MODE_ALL_DISABLED section above.
+				this._prevFocusedButton.setIsFocused(false);
+			}
 		} else if (arg === this.MODE_ALL_ENABLED) {
 
 			this._playButton.setVisible(true);
@@ -209,7 +265,13 @@ export default class ControlPanel {
 			this._incrementHourButton.setEnabled(true);
 			this._incrementDayButton.setEnabled(true);
 
+			if (this._prevFocusedButton !== null) {
+				// Restore saved focus state from other two modes.
+				this._prevFocusedButton.setIsFocused(true);
+				this._prevFocusedButton = null;
+			}	
 		} else {
+			this._prevFocusedButton = null;
 			console.error('Invalid mode.');
 			return;
 		}

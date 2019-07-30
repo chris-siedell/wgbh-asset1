@@ -2,7 +2,7 @@
 Button.js
 wgbh-asset1
 astro.unl.edu
-2019-06-25
+2019-07-29
 */
 
 
@@ -17,7 +17,7 @@ export default class Button {
 		// 	specificClass - optional
 		
 		this._button = document.createElement('button');
-		this._button.classList.add('wgbh-asset1-button');
+		this._button.classList.add('wgbh-button');
 
 		this._button.setAttribute('aria-label', initParams.desc);
 		this._button.setAttribute('title', initParams.desc);
@@ -38,8 +38,47 @@ export default class Button {
 		this._label = document.createElement('span');
 		this._label.textContent = initParams.label;
 		this._contents.appendChild(this._label);
+
+		this._isFocused = false;
+		this._isEnabled = true;
+
+		this._onFocus = this._onFocus.bind(this);
+		this._onBlur = this._onBlur.bind(this);
+
+		this._button.addEventListener('focusin', this._onFocus);
+		this._button.addEventListener('focusout', this._onBlur);
 	}
 
+	toString() {
+		return 'Button (' + this._label.textContent + ')';
+	}
+
+	_onFocus(e) {
+		this._isFocused = true;
+	}
+
+	_onBlur(e) {
+		this._isFocused = false;
+	}
+
+	getIsFocused() {
+		return this._isFocused;
+	}
+
+	setIsFocused(arg) {
+		arg = Boolean(arg);
+		if (arg === this._isFocused) {
+			return;
+		}
+		// Setting _isFocused here is redundant *if* the focusin/out events are dispatched when focus()
+		//	and blur() are called, however in Firefox that does not appear to be the case.
+		this._isFocused = arg;
+		if (this._isFocused) {
+			this._button.focus();
+		} else {
+			this._button.blur();
+		}
+	}
 
 	getElement() {
 		return this._button;
@@ -59,7 +98,12 @@ export default class Button {
 	}
 
 	setEnabled(arg) {
-		this._button.disabled = !arg;
+		arg = Boolean(arg);
+		if (arg === this._isEnabled) {
+			return;
+		}
+		this._isEnabled = arg;
+		this._button.disabled = !this._isEnabled;
 	}
 	
 	setVisible(arg) {

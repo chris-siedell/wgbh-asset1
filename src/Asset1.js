@@ -329,8 +329,8 @@ export class Asset1 {
 
 const COMPONENT = Asset1;
 const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.6';
-const BUILD_DATE_STR = '2019-06-25';
+const VERSION_STR = '0.7';
+const BUILD_DATE_STR = '2019-07-29';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {
