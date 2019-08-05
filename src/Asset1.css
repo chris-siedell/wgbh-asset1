@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-07-29
+2019-08-05
 */
 
 
@@ -237,6 +237,7 @@ astro.unl.edu
 	color: white;
   background-color: #484848;
 	box-shadow: 0 4px 0 0 #181818;
+	border: 1px solid white;
 }
 
 .wgbh-asset1-reset {
