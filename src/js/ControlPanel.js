@@ -1,21 +1,21 @@
 /*
-ControlPanel.js
+js/ControlPanel.js
 wgbh-asset1
 astro.unl.edu
-2019-07-29
+2019-08-12
 */
 
 
-import PlayIconURL from './icons/play-icons_v2_play.svg';
-import PauseIconURL from './icons/play-icons_v2_pause.svg';
-import SkipBackOneDayURL from './icons/double-back-white.svg';
-import SkipBackOneHourURL from './icons/back-white.svg';
-import SkipForwardOneDayURL from './icons/double-forward-white.svg';
-import SkipForwardOneHourURL from './icons/forward-white.svg';
+import PlayIconURL from '../icons/play-icons_v2_play.svg';
+import PauseIconURL from '../icons/play-icons_v2_pause.svg';
+import SkipBackOneDayURL from '../icons/double-back-white.svg';
+import SkipBackOneHourURL from '../icons/back-white.svg';
+import SkipForwardOneDayURL from '../icons/double-forward-white.svg';
+import SkipForwardOneHourURL from '../icons/forward-white.svg';
 
 
-import Button from './Button.js';
-import Checkbox from './Checkbox.js';
+import Button from 'Button.js';
+import Checkbox from 'Checkbox.js';
 
 
 export default class ControlPanel {
@@ -114,12 +114,6 @@ export default class ControlPanel {
 		this._incrementDayButton.addHandler(this._parent.incrementDay);
 		rightSection.appendChild(this._incrementDayButton.getElement());
 
-
-		// TODO: finalize
-//		let bottomestSection = document.createElement('div');
-//		bottomestSection.classList.add('wgbh-asset1-controlpanel-bottomest');
-//		this._element.appendChild(bottomestSection);
-
 		this._showPhaseReadoutCheck = new Checkbox({
 			label: "Show Moon Phase Names",
 			isChecked: this._parent._isPhaseReadoutShown,
@@ -136,32 +130,6 @@ export default class ControlPanel {
 		});
 		this._goToDay1Button.addHandler(this._parent.goToDay1);
 		bottomSection.appendChild(this._goToDay1Button.getElement());
-
-
-//		this._phaseReadoutCheck = document.createElement('input');
-//		this._phaseReadoutCheck.type = 'checkbox';
-//		this._phaseReadoutCheck.id = 'wgbh-asset1-phase-readout-check';
-//		this._phaseReadoutCheck.name = 'Show Moon Phase Names';
-//		this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
-//		this._phaseReadoutCheck.addEventListener('change', (e) => {
-//			try {
-//				this._parent._setIsPhaseReadoutShown(this._phaseReadoutCheck.checked);
-//			} catch (err) {
-//				console.error(err);
-//				this._phaseReadoutCheck.checked = this._parent._isPhaseReadoutShown;
-//				return;
-//			}
-//		});
-//
-//		this._phaseReadoutLabel = document.createElement('label');
-//		this._phaseReadoutLabel.htmlFor = 'wgbh-asset1-phase-readout-check';
-//		this._phaseReadoutLabel.appendChild(this._phaseReadoutCheck);
-//
-//		this._phaseReadoutLabelText = document.createElement('span');
-//		this._phaseReadoutLabelText.textContent = loc.phaseReadoutCheckLabel;
-//		this._phaseReadoutLabel.appendChild(this._phaseReadoutLabelText);
-//
-//		bottomestSection.appendChild(this._phaseReadoutLabel);
 
 		this._prevFocusedButton = null;
 
@@ -236,8 +204,8 @@ export default class ControlPanel {
 
 			this._prevFocusedButton = this._getCurrentFocusedButton();
 
-			this._playButton.setVisible(false);
-			this._pauseButton.setVisible(true);
+			this._playButton.setIsVisible(false);
+			this._pauseButton.setIsVisible(true);
 
 			this._decrementDayButton.setEnabled(false);
 			this._decrementHourButton.setEnabled(false);
@@ -255,8 +223,8 @@ export default class ControlPanel {
 			}
 		} else if (arg === this.MODE_ALL_ENABLED) {
 
-			this._playButton.setVisible(true);
-			this._pauseButton.setVisible(false);
+			this._playButton.setIsVisible(true);
+			this._pauseButton.setIsVisible(false);
 
 			this._decrementDayButton.setEnabled(true);
 			this._decrementHourButton.setEnabled(true);
@@ -272,7 +240,7 @@ export default class ControlPanel {
 			}	
 		} else {
 			this._prevFocusedButton = null;
-			console.error('Invalid mode.');
+			console.error('Invalid mode in control panel.');
 			return;
 		}
 	}

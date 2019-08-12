@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-08-05
+2019-08-12
 */
 
 
@@ -17,21 +17,39 @@ astro.unl.edu
 
 	overflow: hidden;
 
-	width: 100%;
-	height: 100%;
-
 	padding: 0;
 	margin: 0;
 	border: 0;
 	background-color: black;
-	box-sizing: border-box;
 
+	/* Additional properties set in media queries. */
+}
+
+
+/*
+**	Inner Container
+*/
+
+.wgbh-asset1-inner {
+	position: relative;
+	margin: 0 auto;
+	padding: 0;
+	border: 0;
+
+	width: 100%;
+	height: 100%;
+
+	/* flex-direction set in media queries. */
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	
-	/* Additional properties set in media queries. */
+	text-align: center;
 }
+
+
+/*
+** Top Level Containers
+*/
 
 .wgbh-asset1-panels {
 	overflow: hidden;
@@ -41,6 +59,12 @@ astro.unl.edu
 	overflow: hidden;
 	position: relative;
 }
+
+
+/*
+**	Phase Readout
+**	Displayed over the sky diagram, in top right corner.
+*/
 
 .wgbh-asset1-phase-readout {
 	position: absolute;
@@ -56,7 +80,6 @@ astro.unl.edu
 	white-space: nowrap;
 	color: white;
 }
-
 
 
 /*
@@ -83,182 +106,52 @@ astro.unl.edu
 
 
 /*
-**	Button
-*/
-
-.wgbh-button {
-	font-family: sans-serif;
-	font-weight: 600;
-	direction: ltr;
-	display: block;
-	border: none;
-	color: black;
-	cursor: pointer;
-  border-radius: 14px;
-}
-
-.wgbh-button div {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	line-height: 1;
-}
-
-.wgbh-button img {
-	display: inline-block;
-	margin: 0 0.5rem 0 0;
-	height: 0.8em;
-}
-	
-.wgbh-button span {
-	padding: 0.1em 0 0 0;
-	margin: 0;
-}
-
-.wgbh-button:not([disabled]):active {
-	transform: translateY(4px);
-	box-shadow: none;
-}
-
-.wgbh-button:disabled {
-	opacity: 0.6;
-	cursor: default;
-}
-
-.wgbh-button:focus {
-	outline: 6px solid white;
-	outline-offset: 3px;
-	border: none;
-}
-
-.wgbh-button::-moz-focus-inner {
-	border: none;
-}
-
-
-/*
-**	Checkbox
-*/
-
-.wgbh-checkbox-focused {
-	outline: 6px solid white;
-	outline-offset: 3px;
-	border: none;
-}
-
-.wgbh-checkbox {
-	display: inline-block;
-	padding: 0;
-	margin: 0.6rem 1.5rem;
-	height: 1.5rem;
-	border: 0;
-}
-
-.wgbh-checkbox label {
-	position: relative;
-	font-family: sans-serif;
-	font-weight: 500;
-	font-size: 1.2rem;
-	color: white;
-	margin: 0 0.2rem;
-	padding: 0;
-}
-
-.wgbh-checkbox label span {
-	vertical-align: middle;
-}
-
-.wgbh-checkbox input {
-	position: absolute;
-	opacity: 0;
-	z-index: -1;
-}
-
-.wgbh-checkbox-indicator {
-	position: relative;
-	vertical-align: middle;
-	display: inline-block;
-	margin: 0 0.5rem 0 0;
-	height: 1em;
-	width: 1em;
-
-	box-sizing: border-box;
-	border: 2px solid white;
-	border-radius: 4px;
-}
-
-.wgbh-checkbox-indicator:after {
-	content: '';
-	display: none;
-}
-
-.wgbh-checkbox input:checked ~ .wgbh-checkbox-indicator:after {
-	display: block;
-}
-
-.wgbh-checkbox-indicator:after {
-	position: relative;
-  left: 0.22em;
-  top: 0.01em;
-  width: 0.2em;
-  height: 0.5em;
-  border: solid #fff;
-  border-width: 0 0.17em 0.17em 0;
-  transform: rotate(45deg);
-}
-
-
-/*
 **	Specific Buttons
 */
 
 .wgbh-asset1-play-pause {
-	margin: 1rem 0.8rem;
-	font-size: 2.2rem;
-	padding: 0.2rem;
-	height: 4rem;
-	width: 13rem;
-  background-color: #ffe61e;
-	box-shadow: 0 4px 0 0 #ffba09;
+	margin: 1rem 0.8rem !important;
+	font-size: 2.2rem !important;
+	padding: 0.2rem !important;
+	height: 4rem !important;
+	width: 13rem !important;
+  background-color: #ffe61e !important;
+	box-shadow: 0 4px 0 0 #ffba09 !important;
 }
 
 /* DO NOT CHANGE the skip button's width or left/right margins without first
 	reading the Control Panel Layout comments. Changing these values will require
 	multiple changes elsewhere. */
 .wgbh-asset1-skip {
-	margin: 0.6rem 0.4rem;
-	font-size: 1.4rem;
-	padding: 0.2rem;
-	height: 2.2rem;
-	width: 9rem;
-	color: white;
-  background-color: #484848;
-	box-shadow: 0 4px 0 0 #181818;
-	border: 1px solid white;
+	margin: 0.6rem 0.4rem !important;
+	font-size: 1.4rem !important;
+	padding: 0.2rem !important;
+	height: 2.2rem !important;
+	width: 9rem !important;
+	color: white !important;
+  background-color: #484848 !important;
+	box-shadow: 0 4px 0 0 #181818 !important;
+	border: 1px solid white !important;
 }
 
 .wgbh-asset1-reset {
-	background-color: transparent;
-	cursor: pointer;
-	color: white;
+	background-color: transparent !important;
+	color: white !important;
 
-	font-family: sans-serif;
-	font-weight: 500;
+	font-family: sans-serif !important;
+	font-weight: 500 !important;
 
-	text-decoration: underline;
+	text-decoration: underline !important;
 	
-	margin: 0.6rem 1.5rem;
-	font-size: 1.2rem;
-	padding: 0.1rem;
-	height: 1.5rem;
-	width: 8rem;
+	margin: 0.6rem 1.5rem 9px 1.5rem !important;
+	font-size: 1.2rem !important;
+	padding: 0.1rem !important;
+	height: 1.5rem !important;
+	width: 8rem !important;
 }
 
 .wgbh-asset1-reset:not([disabled]):active {
-	transform: none;
+	transform: none !important;
 }
 
 
@@ -353,8 +246,8 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 
 .wgbh-asset1-controlpanel-bottom {
 	width: 100%;
-	margin: 0;
-	padding: 0; /*0 0 1rem 0;*/
+	margin: 0 0 1rem 0;
+	padding: 0;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -378,7 +271,7 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 
 
 
-/* Debugging TODO: remove */
+/* Debugging */
 /*
 .wgbh-asset1-controlpanel-top {
 	background-color: rgba(0, 255, 0, 0.3);
@@ -394,7 +287,7 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 
 /*
 DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) without also
-	changing the value in the window.matchMedia call in Asset1.js.
+	changing the value in the window.matchMedia call in LunarPhasesAsset1.js.
 */
 
 @media (min-aspect-ratio: 177/100) {
@@ -403,7 +296,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 		Sideways Layout
 	*/
 
-	.wgbh-asset1-root {
+	.wgbh-asset1-inner {
 		min-width: 35rem;
 		min-height: 22rem;
 		flex-direction: row;
@@ -421,7 +314,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 		Stacked Layout
 	*/
 	
-	.wgbh-asset1-root {
+	.wgbh-asset1-inner {
 		min-width: 20rem;
 		min-height: 31rem;
 		flex-direction: column;
@@ -435,7 +328,7 @@ DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) with
 
 /*
 When a window is being drag-resized to be smaller it will think the content is too large, but later
-the JavaScript (in Asset1.js) will resize the diagram to make everything fit. Thus the scrollbars need
+the JavaScript will resize the diagram to make everything fit. Thus the scrollbars need
 to be suppressed unless the viewport is actually too small.
 */
 
@@ -489,7 +382,7 @@ to be suppressed unless the viewport is actually too small.
 		flex-direction: column;
 	}
 
-	/* Debugging TODO: remove */
+	/* Debugging */
 /*
 	.wgbh-asset1-controlpanel {
 		background-color: rgba(255, 255, 128, 0.5);
@@ -538,15 +431,12 @@ to be suppressed unless the viewport is actually too small.
 		flex-direction: row;
 	}
 
-
-	/* Debugging TODO: remove */
+	/* Debugging */
 /*
 	.wgbh-asset1-controlpanel {
 		background-color: rgba(255, 255, 255, 0.3);
 	}
 */
 }
-
-
 
 

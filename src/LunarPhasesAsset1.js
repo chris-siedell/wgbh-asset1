@@ -2,25 +2,30 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-08-05
+2019-08-12
 */
 
 
-import './Asset1.css';
+// This simulator will automatically resize itself to fill the window.
+
+// Version and other info is at bottom -- remember to update.
+
+
+import './css/Asset1.css';
 
 import LunarTimekeeper from 'LunarTimekeeper.js';
 import SkyDiagram from 'SkyDiagram.js';
 
 import {SkyDiagramParams} from './SkyDiagramParams/SkyDiagramParams.js';
 
-import ControlPanel from './ControlPanel.js';
-import InfoPanel from './InfoPanel.js';
-import PhaseReadout from './PhaseReadout.js';
+import ControlPanel from './js/ControlPanel.js';
+import InfoPanel from './js/InfoPanel.js';
+import PhaseReadout from './js/PhaseReadout.js';
 
-import {Localizations} from './Localizations.js';
+import {Localizations} from './localizations/Localizations.js';
 
 
-export class Asset1 {
+export class LunarPhasesAsset1 {
 
 
 	constructor() {
@@ -45,6 +50,12 @@ export class Asset1 {
 		this._root = document.createElement('div');
 		this._root.classList.add('wgbh-asset1-root');
 
+		this._inner = document.createElement('div');
+		this._inner.classList.add('wgbh-asset1-inner');
+		this._root.appendChild(this._inner);
+
+		this._innerStyle = window.getComputedStyle(this._inner);
+
 		this._diagram = new SkyDiagram();
 		this._phaseReadout = new PhaseReadout(this);
 
@@ -57,11 +68,11 @@ export class Asset1 {
 		this._diagramContainer = document.createElement('div');
 		this._diagramContainer.classList.add('wgbh-asset1-diagram-container');
 		this._diagramContainer.appendChild(this._diagram.getElement());
-		this._root.appendChild(this._diagramContainer);
+		this._inner.appendChild(this._diagramContainer);
 
 		this._panels = document.createElement('div');
 		this._panels.classList.add('wgbh-asset1-panels');
-		this._root.appendChild(this._panels);
+		this._inner.appendChild(this._panels);
 
 		this._infoPanel = new InfoPanel(this);
 		this._panels.appendChild(this._infoPanel.getElement());
@@ -72,88 +83,45 @@ export class Asset1 {
 		this._minSkyDiagramAspectRatio = 1.3;
 		this._maxSkyDiagramAspectRatio = 2.3;
 
-//		let bb = this._root.getBoundingClientRect();
-//		this._width = bb.width;
-//		this._height = bb.height;
-
 		// Internal update flags.
 		this._needs_redoLayout = true;
 		this._needs_updateDiagram = true;
+		
+		const dim = this._getFullDim();
+		this._width = dim.width;
+		this._height = dim.height;
+		this._needs_redoLayout = true;
+		
+		this._onWindowResize = this._onWindowResize.bind(this);
+		window.addEventListener('resize', this._onWindowResize);
 
 		this.setParams({
-			diagramParams: SkyDiagramParams,
+			skyDiagramParams: SkyDiagramParams,
 		});
-
 	}
 
 
 	/*
-	**	Button Handlers
-	*/
-
-	decrementDay() {
-		this._timekeeper.setTimeByDelta({day: -1});
-	}
-
-	decrementHour() {
-		this._timekeeper.setTimeByDelta({hour: -1});
-	}
-
-	incrementHour() {
-		this._timekeeper.setTimeByDelta({hour: 1});
-	}
-
-	incrementDay() {
-		this._timekeeper.setTimeByDelta({day: 1});
-	}
-
-	play() {
-		this._timekeeper.setIsPlaying(true);
-	}
-
-	pause() {
-		this._timekeeper.setIsPlaying(false);
-	}
-
-	goToDay1() {
-		this._timekeeper.setTime({calendarDay: 1, fractionalTimeOfDay: 0.5});
-	}
-
-
-	/*
-	**
+	**	Public Methods
 	*/
 
 	getElement() {
 		return this._root;
 	}
 
-	_setIsPhaseReadoutShown(arg) {
-		arg = Boolean(arg);
-		if (arg === this._isPhaseReadoutShown) {
-			throw new Error('_isPhaseReadoutShown was out of sync with checkbox value.');
-		}
-		if (arg) {
-			this._diagramContainer.appendChild(this._phaseReadout.getElement());
-		} else {
-			this._diagramContainer.removeChild(this._phaseReadout.getElement());
-		}
-		this._isPhaseReadoutShown = arg;
-	}
-
 	setParams(params) {
-		// Note: some properties of the params.diagramParams object may be deleted.
+		// Note: some properties of the params.skyDiagramParams object may be deleted.
 
-		if (params.hasOwnProperty('diagramParams')) {
+		if (params.hasOwnProperty('skyDiagramParams')) {
 			// Some SkyDiagram params are controlled by the sim and are not allowed
 			//	to pass through.
 			let strippedParams = ['width', 'height', 'sunPosition', 'moonPosition', 'sunSize', 'moonSize'];
 			for (const key of strippedParams) {
-				if (params.diagramParams.hasOwnProperty(key)) {
-					delete params.diagramParams[key];
+				if (params.skyDiagramParams.hasOwnProperty(key)) {
+					delete params.skyDiagramParams[key];
 				}
 			}
-			this._diagram.setParams(params.diagramParams);
+			this._diagram.setParams(params.skyDiagramParams);
 			this._needs_updateDiagram = true;
 		}
 
@@ -166,114 +134,18 @@ export class Asset1 {
 		}
 
 		if (params.hasOwnProperty('needsRedoLayout')) {
-			// Simply the presence of this flag will cause the layout to be redone.
-			this._needs_redoLayout = true;
+			this._needs_redoLayout = Boolean(params.needsRedoLayout);
 		}
 
-/*
 		if (params.hasOwnProperty('width')) {
-			this._width = this._validateNumberWithRange(params.width, 100, 5000, 'width');
+			this._width = params.width;
 			this._needs_redoLayout = true;
 		}
 
 		if (params.hasOwnProperty('height')) {
-			this._height = this._validateNumberWithRange(params.height, 100, 5000, 'height');
+			this._height = params.height;
 			this._needs_redoLayout = true;
 		}
-*/
-	}
-
-	_validateNumberWithRange(arg, min, max, name) {
-		if (typeof arg !== 'number') {
-			arg = parseFloat(arg);
-		}
-		if (Number.isNaN(arg) || !Number.isFinite(arg)) {
-			throw new Error(name + ' must be a finite number.');
-		}
-		if (arg < min) {
-			arg = min;
-		}
-		if (arg > max) {
-			arg = max;
-		}
-		return arg;
-	}
-
-
-	/*
-	**	Internal Update Sub-Methods
-	*/
-
-	_redoLayout() {
-
-		// Call when width or height have changed.
-
-		this._needs_updateDiagram = true;
-
-		let rbb = this._root.getBoundingClientRect();
-//		console.log(rbb.width+", "+rbb.height);
-//		console.warn(this._width+", "+this._height);
-
-//		this._root.style.width = this._width + 'px';
-//		this._root.style.height = this._height + 'px';
-//
-		let skyParams = {};
-
-		// The media query below must be identical to the one used in Asset1.css.
-		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
-		if (useSidewaysLayout) {
-			// Sideways Layout
-			let bb = this._panels.getBoundingClientRect();
-			skyParams.width = rbb.width - bb.width;
-			skyParams.height = rbb.height;
-//			skyParams.width = this._width - bb.width;
-//			skyParams.height = this._height;
-		} else {
-			// Stacked Layout
-			let iph = this._infoPanel.getHeight();
-			let cph = this._controlPanel.getHeight();
-			skyParams.width =  rbb.width;
-			skyParams.height = rbb.height - iph - cph;
-//			skyParams.width =  this._width;
-//			skyParams.height = this._height - iph - cph;
-		}
-	
-		let ratio = skyParams.width / skyParams.height;
-		if (ratio < this._minSkyDiagramAspectRatio) {
-			skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
-		} else if (ratio > this._maxSkyDiagramAspectRatio) {
-			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
-		}
-
-		skyParams.width = Math.floor(skyParams.width);
-		skyParams.height = Math.floor(skyParams.height);
-
-		this._diagramContainer.style.width = skyParams.width + 'px';
-		this._diagramContainer.style.height = skyParams.height + 'px';
-
-		this._diagram.setParams(skyParams);
-	
-		this._needs_redoLayout = false;
-	}
-
-	_doTimeBasedUpdates() {
-
-		this._needs_updateDiagram = true;
-
-		// timeObj will be an object with these properties:
-		// 	calendarDay: an integer in [1, 30]
-		//	fractionalTimeOfDay: a rational number in [0, 1) giving the time of day, where 0.0 is midnight, 0.5 is noon, etc.
-		//	moonPhase: a rational number in [0, 1) giving the moon phase, where 0.0 is the new moon, 0.25 is first quarter, etc.
-		let timeObj = this._timekeeper.getTime();
-		
-		let diagramParams = {};
-		diagramParams.sunPosition = timeObj.fractionalTimeOfDay - 0.25;
-		diagramParams.moonPosition = diagramParams.sunPosition - timeObj.moonPhase;
-		this._diagram.setParams(diagramParams);
-
-		this._infoPanel.updateWithTimeObj(timeObj);
-
-		this._phaseReadout.updateWithTimeObj(timeObj);
 	}
 
 	update() {
@@ -313,6 +185,176 @@ export class Asset1 {
 		}
 	}
 
+
+	/*
+	**	Button Handlers
+	*/
+
+	decrementDay() {
+		this._timekeeper.setTimeByDelta({day: -1});
+	}
+
+	decrementHour() {
+		this._timekeeper.setTimeByDelta({hour: -1});
+	}
+
+	incrementHour() {
+		this._timekeeper.setTimeByDelta({hour: 1});
+	}
+
+	incrementDay() {
+		this._timekeeper.setTimeByDelta({day: 1});
+	}
+
+	play() {
+		this._timekeeper.setIsPlaying(true);
+	}
+
+	pause() {
+		this._timekeeper.setIsPlaying(false);
+	}
+
+	goToDay1() {
+		this._timekeeper.setTime({calendarDay: 1, fractionalTimeOfDay: 0.5});
+	}
+
+
+	/*
+	**	Internal Sizing Methods
+	*/
+
+	_onWindowResize() {
+		let dim = this._getFullDim();
+		if (dim.width === this._width && dim.height === this._height) {
+			return;
+		};
+		this._width = dim.width;
+		this._height = dim.height;
+		this._needs_redoLayout = true;
+		this.update();
+	}
+
+	_getFullDim() {
+		// Returns dimensions for the sim to fill the entire viewport, but not
+		//	less than the minimums set in the CSS.
+		const windowWidth = window.innerWidth;
+		const windowHeight = window.innerHeight;
+		let minWidth = parseFloat(this._innerStyle.getPropertyValue('min-width'));
+		if (Number.isNaN(minWidth)) {
+			minWidth = 0;
+		}
+		let minHeight = parseFloat(this._innerStyle.getPropertyValue('min-height'));
+		if (Number.isNaN(minHeight)) {
+			minHeight = 0;
+		}
+
+		return {
+			width: (windowWidth > minWidth) ? windowWidth : minWidth,
+			height: (windowHeight > minHeight) ? windowHeight : minHeight,
+		};
+	}
+
+
+	/*
+	**	Misc Internal Methods
+	*/
+
+	_validateNumberWithRange(arg, min, max, name) {
+		if (typeof arg !== 'number') {
+			arg = parseFloat(arg);
+		}
+		if (Number.isNaN(arg) || !Number.isFinite(arg)) {
+			throw new Error(name + ' must be a finite number.');
+		}
+		if (arg < min) {
+			arg = min;
+		}
+		if (arg > max) {
+			arg = max;
+		}
+		return arg;
+	}
+
+	_setIsPhaseReadoutShown(arg) {
+		arg = Boolean(arg);
+		if (arg === this._isPhaseReadoutShown) {
+			throw new Error('_isPhaseReadoutShown was out of sync with checkbox value.');
+		}
+		if (arg) {
+			this._diagramContainer.appendChild(this._phaseReadout.getElement());
+		} else {
+			this._diagramContainer.removeChild(this._phaseReadout.getElement());
+		}
+		this._isPhaseReadoutShown = arg;
+	}
+
+
+	/*
+	**	Internal Update Sub-Methods
+	*/
+
+	_redoLayout() {
+
+		// Call when width or height have changed.
+
+		this._needs_updateDiagram = true;
+
+		this._root.style.width = this._width + 'px';
+		this._root.style.height = this._height + 'px';
+
+		let skyParams = {};
+
+		// The media query below must be identical to the one used in the CSS file.
+		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
+		if (useSidewaysLayout) {
+			// Sideways Layout
+			let bb = this._panels.getBoundingClientRect();
+			skyParams.width = this._width - bb.width;
+			skyParams.height = this._height;
+		} else {
+			// Stacked Layout
+			let iph = this._infoPanel.getHeight();
+			let cph = this._controlPanel.getHeight();
+			skyParams.width =  this._width;
+			skyParams.height = this._height - iph - cph;
+		}
+	
+		let ratio = skyParams.width / skyParams.height;
+		if (ratio < this._minSkyDiagramAspectRatio) {
+			skyParams.height = skyParams.width / this._minSkyDiagramAspectRatio;
+		} else if (ratio > this._maxSkyDiagramAspectRatio) {
+			skyParams.width = skyParams.height * this._maxSkyDiagramAspectRatio;				
+		}
+
+		skyParams.width = Math.floor(skyParams.width);
+		skyParams.height = Math.floor(skyParams.height);
+
+		this._diagram.setParams(skyParams);
+	
+		this._needs_redoLayout = false;
+	}
+
+	_doTimeBasedUpdates() {
+
+		this._needs_updateDiagram = true;
+
+		// timeObj will be an object with these properties:
+		// 	calendarDay: an integer in [1, 30]
+		//	fractionalTimeOfDay: a rational number in [0, 1) giving the time of day, where 0.0 is midnight, 0.5 is noon, etc.
+		//	moonPhase: a rational number in [0, 1) giving the moon phase, where 0.0 is the new moon, 0.25 is first quarter, etc.
+		let timeObj = this._timekeeper.getTime();
+		
+		let diagramParams = {};
+		diagramParams.sunPosition = timeObj.fractionalTimeOfDay - 0.25;
+		diagramParams.moonPosition = diagramParams.sunPosition - timeObj.moonPhase;
+		this._diagram.setParams(diagramParams);
+
+		this._infoPanel.updateWithTimeObj(timeObj);
+
+		this._phaseReadout.updateWithTimeObj(timeObj);
+	}
+
+
 }
 
 
@@ -327,10 +369,10 @@ export class Asset1 {
 **			var c = new window.WGBH.<COMPONENT_NAME>();
 */
 
-const COMPONENT = Asset1;
-const COMPONENT_NAME = 'Asset1';
-const VERSION_STR = '0.8';
-const BUILD_DATE_STR = '2019-08-05';
+const COMPONENT = LunarPhasesAsset1;
+const COMPONENT_NAME = 'LunarPhasesAsset1';
+const VERSION_STR = '1.0';
+const BUILD_DATE_STR = '2019-08-12';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {

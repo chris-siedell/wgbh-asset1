@@ -1,5 +1,5 @@
 /*
-Localizations.css
+js/Localizations.js
 wgbh-asset1
 astro.unl.edu
 2019-06-25
