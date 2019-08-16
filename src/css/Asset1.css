@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-08-12
+2019-08-13
 */
 
 
@@ -339,7 +339,7 @@ to be suppressed unless the viewport is actually too small.
 	}
 }
 
-@media (max-aspect-ratio: 177/180) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 31rem) {
+@media (max-aspect-ratio: 177/100) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 31rem) {
 	/* Stacked Layout - Too Small Viewport */
 	.wgbh-asset1-root {
 		overflow: auto;
