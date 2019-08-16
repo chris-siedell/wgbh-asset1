@@ -2,12 +2,42 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-08-13
+2019-08-16
 */
 
 
-/* Note: media queries are at bottom. */
+/*
+The sim takes over control of the entire viewport.
+*/
 
+html {
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background-color: rgb(15, 15, 15);
+
+	/* overflow may be overridden in media queries. */ 
+	overflow: hidden;
+}
+
+
+/*
+=== Upper-Level Containers ===
+
+- root
+ + - inner
+		+ - diagram (the sky diagrams)
+			- panels (contains the info and control panels)
+In portrait layout, diagrams is at top and panels is at bottom.
+In landscape, diagrams is at left and panels is at right.
+*/
 
 .wgbh-asset1-root {
 	-moz-user-select: none;
@@ -15,55 +45,51 @@ astro.unl.edu
 	-ms-user-select: none;
 	user-select: none;
 
-	overflow: hidden;
+	overflow: visible;
 
 	padding: 0;
 	margin: 0;
 	border: 0;
-	background-color: black;
-
-	/* Additional properties set in media queries. */
 }
-
-
-/*
-**	Inner Container
-*/
 
 .wgbh-asset1-inner {
 	position: relative;
 	margin: 0 auto;
 	padding: 0;
 	border: 0;
+	background-color: black;
 
 	width: 100%;
 	height: 100%;
-
-	/* flex-direction set in media queries. */
+	
+	/* Min dimensions and flex direction set in media queries. */
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	text-align: center;
 }
 
-
-/*
-** Top Level Containers
-*/
-
-.wgbh-asset1-panels {
-	overflow: hidden;
-}
-
-.wgbh-asset1-diagram-container {
+.wgbh-asset1-diagram {
+	flex-shrink: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
 	overflow: hidden;
 	position: relative;
 }
 
+.wgbh-asset1-panels {
+	flex-shrink: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
 
 /*
-**	Phase Readout
-**	Displayed over the sky diagram, in top right corner.
+=== Phase Readout ===
+
+Displayed over the sky diagram, in top right corner.
 */
 
 .wgbh-asset1-phase-readout {
@@ -83,7 +109,7 @@ astro.unl.edu
 
 
 /*
-**	Info Panel
+=== Info Panel ===
 */
 
 .wgbh-asset1-infopanel {
@@ -106,7 +132,7 @@ astro.unl.edu
 
 
 /*
-**	Specific Buttons
+=== Specific Buttons ===
 */
 
 .wgbh-asset1-play-pause {
@@ -156,40 +182,7 @@ astro.unl.edu
 
 
 /*
-
-=== General Layout ===
-
-There are two general layouts: stacked and sideways. Generally speaking, stacked is for desktop
-	browsers or portrait on mobile, and sideways is for landscape on mobile. (Viewport width and
-	aspect ratio are used to decide between them, not orientation.)
-
-Stacked Layout:
-	+---------------+
-	|               |
-	|  Sky Diagram  |
-	|               |
-	+---------------+
-	|  Info Panel   |
-	+---------------+
-	| Control Panel |
-	|               |
-	+---------------+
-
-Sideways Layout:
-	+-------------+---------------+
-	|             |  Info Panel   |
-	|     Sky     +---------------+
-	|   Diagram   | Control Panel |
-	|             |               |
-	+-------------+---------------+
-
-In the Sideways Layout the Info and Control Panels are always 20rem wide. In both layouts the
-	component code determines the dimensions of the Sky Diagram.
-
-
 === Control Panel Layout ===
-
-The control panel contains the buttons and options.
 
 The minimum control panel width is determined by the skip buttons:
 		<minimum control panel width> = 2*<skip width> + 4*<skip left/right margin>
@@ -207,9 +200,8 @@ Containers:
 There are two distinct control panel layouts: narrow and wide. Which is selected depends
 	on two factors: the viewport width and the aspect ratio.
 
-Narrow Control Panel - for narrow viewports in Stacked Layout, or any viewport in Sideways Layout.
-Wide Control Panel - for wide viewports in Stacked Layout.
-
+Narrow Control Panel - for narrow viewports in portrait, or any viewport in landscape.
+Wide Control Panel - for wide viewports in portrait.
 */
 
 .wgbh-asset1-controlpanel {
@@ -249,16 +241,9 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 	margin: 0 0 1rem 0;
 	padding: 0;
 	display: flex;
-	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-}
-
-.wgbh-asset1-controlpanel-bottomest {
-	width: 100%;
-	margin: 0;
-	padding: 0.3rem 0.3rem;
 }
 
 .wgbh-asset1-play-pause {
@@ -269,174 +254,145 @@ Wide Control Panel - for wide viewports in Stacked Layout.
 	display: inline-block;
 }
 
+/* Use the narrow control panel by default. */
 
-
-/* Debugging */
-/*
+.wgbh-asset1-controlpanel {
+	min-width: 20rem;
+}
+.wgbh-asset1-controlpanel-primary {
+	display: block;
+}
 .wgbh-asset1-controlpanel-top {
-	background-color: rgba(0, 255, 0, 0.3);
+	width: 100%;	
 }
 .wgbh-asset1-controlpanel-left {
-	background-color: rgba(255, 0, 0, 0.3);
+	width: 50%;
 }
 .wgbh-asset1-controlpanel-right {
-	background-color: rgba(0, 0, 255, 0.3);
+	width: 50%;
 }
-*/
+.wgbh-asset1-controlpanel-bottom {
+	flex-direction: column;
+}
 
+
+/*
+=== General Layout ===
+
+The aspect ratio determines the general layout.
+
+Portrait Layout:
+	+---------------+
+	|               |
+	|  Sky Diagram  |
+	|               |
+	+---------------+
+	|  Info Panel   |
+	+---------------+
+	| Control Panel |
+	|               |
+	+---------------+
+
+Landscape Layout:
+	+-------------+---------------+
+	|             |  Info Panel   |
+	|     Sky     +---------------+
+	|   Diagram   | Control Panel |
+	|             |               |
+	+-------------+---------------+
+
+In landscape the info and control panels are always 20rem wide. In both layouts the
+	JavaScript code determines the dimensions of the sky diagram.
+*/
 
 /*
 DO NOT CHANGE the aspect ratio threshold (which appears in multiple places) without also
 	changing the value in the window.matchMedia call in LunarPhasesAsset1.js.
 */
 
-@media (min-aspect-ratio: 177/100) {
 
-	/*
-		Sideways Layout
-	*/
-
-	.wgbh-asset1-inner {
-		min-width: 35rem;
-		min-height: 22rem;
-		flex-direction: row;
-	}
-
-	.wgbh-asset1-panels {
-		width: 20rem;
-	}
-}
-
+/*
+=== Portrait Layout (aspect ratio < 1.77) ===
+*/
 
 @media (max-aspect-ratio: 177/100) {
-
-	/*
-		Stacked Layout
-	*/
-	
 	.wgbh-asset1-inner {
 		min-width: 20rem;
 		min-height: 31rem;
 		flex-direction: column;
 	}
-
 	.wgbh-asset1-panels {
 		width: 100%;
 	}
 }
 
-
-/*
-When a window is being drag-resized to be smaller it will think the content is too large, but later
-the JavaScript will resize the diagram to make everything fit. Thus the scrollbars need
-to be suppressed unless the viewport is actually too small.
-*/
-
-@media (min-aspect-ratio: 177/100) and (max-width: 35rem), (min-aspect-ratio: 177/100) and (max-height: 22rem) {
-	/* Sideways Layout -- Too Small Viewport */
-	.wgbh-asset1-root {
-		overflow: auto;
+@media (max-aspect-ratio: 177/100) and (max-width: 20rem) {
+	body {
+		overflow-x: scroll;
 	}
 }
 
-@media (max-aspect-ratio: 177/100) and (max-width: 20rem), (max-aspect-ratio: 177/100) and (max-height: 31rem) {
-	/* Stacked Layout - Too Small Viewport */
-	.wgbh-asset1-root {
-		overflow: auto;
+@media (max-aspect-ratio: 177/100) and (max-height: 31rem) {
+	body {
+		overflow-y: scroll;
 	}
 }
 
-
-@media (max-width: 38rem), (width: 38rem), (min-aspect-ratio: 177/100) {
-	
-	/*
-		Narrow Control Panel
-
-		Three levels:
-			*-top (play/pause buttons)
-			*-left (decrement skip buttons), *-right (increment skip buttons)
-			*-bottom (go to day 1 button)
-	*/
-
-	.wgbh-asset1-controlpanel {
-		min-width: 20rem;
-	}
-	
-	.wgbh-asset1-controlpanel-primary {
-		display: block;
-	}
-	
-	.wgbh-asset1-controlpanel-top {
-		width: 100%;	
-	}
-	
-	.wgbh-asset1-controlpanel-left {
-		width: 50%;
-	}
-	
-	.wgbh-asset1-controlpanel-right {
-		width: 50%;
-	}
-
-	.wgbh-asset1-controlpanel-bottom {
-		flex-direction: column;
-	}
-
-	/* Debugging */
-/*
-	.wgbh-asset1-controlpanel {
-		background-color: rgba(255, 255, 128, 0.5);
-	}
-*/
-}
-
-
-@media (min-width: 38rem) and (max-aspect-ratio: 177/100) {
-
-	/*
-		Wide Control Panel
-
-		Two levels:
-			*-left (decrement skip buttons), *-top (play/pause buttons), *-right (increment skip buttons)
-			*-bottom (go to day 1 button)
-	*/
-
+@media (max-aspect-ratio: 177/100) and (min-width: 38rem) {
+	/* Use wide control panel layout. */
 	.wgbh-asset1-controlpanel {
 		max-width: 62rem;
 	}
-	
 	.wgbh-asset1-controlpanel-primary {
 		display: flex;
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
 	}
-	
 	.wgbh-asset1-controlpanel-left {
 		flex: 1 1 30%;
 		order: 1;
 	}
-	
 	.wgbh-asset1-controlpanel-top {
 		flex: 1 1 20%;
 		order: 2;
 	}
-	
 	.wgbh-asset1-controlpanel-right {
 		flex: 1 1 30%;
 		order: 3;
 	}
-
 	.wgbh-asset1-controlpanel-bottom {
 		flex-direction: row;
 	}
+}
 
-	/* Debugging */
+
 /*
-	.wgbh-asset1-controlpanel {
-		background-color: rgba(255, 255, 255, 0.3);
-	}
+=== Landscape Layout (aspect ratio >= 1.77) ===
 */
+
+
+@media (min-aspect-ratio: 177/100) {
+	.wgbh-asset1-inner {
+		min-width: 35rem;
+		min-height: 22rem;
+		flex-direction: row;
+	}
+	.wgbh-asset1-panels {
+		width: 20rem;
+	}
+}
+
+@media (min-aspect-ratio: 177/100) and (max-width: 35rem) {
+	body {
+		overflow-x: scroll;
+	}
+}
+
+@media (min-aspect-ratio: 177/100) and (max-height: 22rem) {
+	body {
+		overflow-y: scroll;
+	}
 }
 
 

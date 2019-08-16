@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-08-12
+2019-08-16
 */
 
 
@@ -66,7 +66,7 @@ export class LunarPhasesAsset1 {
 		this._isPhaseReadoutShown = false;
 
 		this._diagramContainer = document.createElement('div');
-		this._diagramContainer.classList.add('wgbh-asset1-diagram-container');
+		this._diagramContainer.classList.add('wgbh-asset1-diagram');
 		this._diagramContainer.appendChild(this._diagram.getElement());
 		this._inner.appendChild(this._diagramContainer);
 
@@ -86,10 +86,8 @@ export class LunarPhasesAsset1 {
 		// Internal update flags.
 		this._needs_redoLayout = true;
 		this._needs_updateDiagram = true;
-		
-		const dim = this._getFullDim();
-		this._width = dim.width;
-		this._height = dim.height;
+
+		this._calcWindowDim();
 		this._needs_redoLayout = true;
 		
 		this._onWindowResize = this._onWindowResize.bind(this);
@@ -135,16 +133,6 @@ export class LunarPhasesAsset1 {
 
 		if (params.hasOwnProperty('needsRedoLayout')) {
 			this._needs_redoLayout = Boolean(params.needsRedoLayout);
-		}
-
-		if (params.hasOwnProperty('width')) {
-			this._width = params.width;
-			this._needs_redoLayout = true;
-		}
-
-		if (params.hasOwnProperty('height')) {
-			this._height = params.height;
-			this._needs_redoLayout = true;
 		}
 	}
 
@@ -224,21 +212,24 @@ export class LunarPhasesAsset1 {
 	*/
 
 	_onWindowResize() {
-		let dim = this._getFullDim();
-		if (dim.width === this._width && dim.height === this._height) {
-			return;
-		};
-		this._width = dim.width;
-		this._height = dim.height;
+		this._calcWindowDim();
 		this._needs_redoLayout = true;
 		this.update();
 	}
 
-	_getFullDim() {
-		// Returns dimensions for the sim to fill the entire viewport, but not
-		//	less than the minimums set in the CSS.
-		const windowWidth = window.innerWidth;
-		const windowHeight = window.innerHeight;
+	_calcWindowDim() {
+		// Sets the _windowWidth and _windowHeight properties.
+		// May account for scrollbars in future.
+		this._windowWidth = window.innerWidth;
+		this._windowHeight = window.innerHeight;
+	}
+
+	_calcFullDim() {
+		// Sets the _width and _height properties. These are set so that the sim fits
+		//	the entire viewport. However, they will not be set less than the minimums
+		//	defined in the CSS file.
+		// This function can't be called from the constructor since on initialization
+		//	the min-width and min-height properties will not be accessible.
 		let minWidth = parseFloat(this._innerStyle.getPropertyValue('min-width'));
 		if (Number.isNaN(minWidth)) {
 			minWidth = 0;
@@ -247,11 +238,8 @@ export class LunarPhasesAsset1 {
 		if (Number.isNaN(minHeight)) {
 			minHeight = 0;
 		}
-
-		return {
-			width: (windowWidth > minWidth) ? windowWidth : minWidth,
-			height: (windowHeight > minHeight) ? windowHeight : minHeight,
-		};
+		this._width = (this._windowWidth > minWidth) ? this._windowWidth : minWidth;
+		this._height = (this._windowHeight > minHeight) ? this._windowHeight : minHeight;
 	}
 
 
@@ -299,20 +287,22 @@ export class LunarPhasesAsset1 {
 
 		this._needs_updateDiagram = true;
 
+		this._calcFullDim();
+
 		this._root.style.width = this._width + 'px';
 		this._root.style.height = this._height + 'px';
 
 		let skyParams = {};
 
 		// The media query below must be identical to the one used in the CSS file.
-		let useSidewaysLayout = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
-		if (useSidewaysLayout) {
-			// Sideways Layout
+		const isInLandscape = window.matchMedia('(min-aspect-ratio: 177/100)').matches;
+		if (isInLandscape) {
+			// Landscape Layout
 			let bb = this._panels.getBoundingClientRect();
 			skyParams.width = this._width - bb.width;
 			skyParams.height = this._height;
 		} else {
-			// Stacked Layout
+			// Widescreen Layout
 			let iph = this._infoPanel.getHeight();
 			let cph = this._controlPanel.getHeight();
 			skyParams.width =  this._width;
@@ -354,7 +344,6 @@ export class LunarPhasesAsset1 {
 		this._phaseReadout.updateWithTimeObj(timeObj);
 	}
 
-
 }
 
 
@@ -371,8 +360,8 @@ export class LunarPhasesAsset1 {
 
 const COMPONENT = LunarPhasesAsset1;
 const COMPONENT_NAME = 'LunarPhasesAsset1';
-const VERSION_STR = '1.0';
-const BUILD_DATE_STR = '2019-08-12';
+const VERSION_STR = '1.1';
+const BUILD_DATE_STR = '2019-08-16';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {
