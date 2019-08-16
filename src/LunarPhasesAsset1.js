@@ -302,7 +302,7 @@ export class LunarPhasesAsset1 {
 			skyParams.width = this._width - bb.width;
 			skyParams.height = this._height;
 		} else {
-			// Widescreen Layout
+			// Portrait Layout
 			let iph = this._infoPanel.getHeight();
 			let cph = this._controlPanel.getHeight();
 			skyParams.width =  this._width;
