@@ -2,12 +2,12 @@
 webpack.config.js
 wgbh-asset1
 astro.unl.edu
-2019-08-16
+2020-05-28
 */
 
 
 const COMPONENT_NAME = 'LunarPhasesAsset1';
-const VERSION_TAG = '_v1-1';
+const VERSION_TAG = '_v1-2-0';
 
 
 const path = require('path');

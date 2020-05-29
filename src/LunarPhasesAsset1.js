@@ -2,7 +2,7 @@
 Asset1.js
 wgbh-asset1
 astro.unl.edu
-2019-08-16
+2020-05-28
 */
 
 
@@ -360,8 +360,8 @@ export class LunarPhasesAsset1 {
 
 const COMPONENT = LunarPhasesAsset1;
 const COMPONENT_NAME = 'LunarPhasesAsset1';
-const VERSION_STR = '1.1';
-const BUILD_DATE_STR = '2019-08-16';
+const VERSION_STR = '1.2.0';
+const BUILD_DATE_STR = '2020-05-28';
 
 if (typeof window !== 'undefined') {
 	if (!window.hasOwnProperty('WGBH')) {

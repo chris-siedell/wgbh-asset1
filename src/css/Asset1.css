@@ -2,7 +2,7 @@
 Asset1.css
 wgbh-asset1
 astro.unl.edu
-2019-08-16
+2020-05-28
 */
 
 
@@ -16,6 +16,8 @@ html {
 }
 
 body {
+  touch-action: none;
+
 	width: 100%;
 	height: 100%;
 	margin: 0;
